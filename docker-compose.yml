@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:15
+    container_name: brickland_db
+    environment:
+      POSTGRES_USER: proy2
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: brickland
+    ports:
+      - "5432:5432"
