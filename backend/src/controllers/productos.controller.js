@@ -51,4 +51,35 @@ const createProducto = async (req, res) => {
   }
 };
 
-module.exports = { getProductos, createProducto };
+const updateProducto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, precio_unitario, stock } = req.body;
+
+    const result = await pool.query(
+      `UPDATE producto 
+       SET nombre = $1, precio_unitario = $2, stock = $3
+       WHERE id_producto = $4
+       RETURNING *`,
+      [nombre, precio_unitario, stock, id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al actualizar producto' });
+  }
+};
+
+const deleteProducto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query(`DELETE FROM producto WHERE id_producto = $1`, [id]);
+    res.json({ message: 'Producto eliminado correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar producto' });
+  }
+};
+
+module.exports = { getProductos, createProducto, updateProducto, deleteProducto };
