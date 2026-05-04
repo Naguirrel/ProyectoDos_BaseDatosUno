@@ -1,1 +1,52 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BrickLand Store | Proveedores</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/styles.css"><script src="js/api.js" defer></script><script src="js/ui.js" defer></script></head><body data-entity="proveedores" data-nav="proveedores"><div class="app"><aside class="sidebar"><a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a><nav><div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div><div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div></nav></aside><main class="main"><section class="topline"><div><p class="eyebrow">Abastecimiento</p><h1>Proveedores</h1><p>Consulta socios de suministro, contacto comercial y datos de comunicacion.</p></div><button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button></section><section id="alerta" class="alert hidden"></section><section class="card"><div class="card-header"><div><p class="eyebrow">Compras</p><h2>Proveedores registrados</h2></div><span class="pill" id="entityCounter">0 registros</span></div><div class="table-wrap" id="entityTable"><p class="loading">Cargando...</p></div></section></main></div></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickLand Store | Proveedores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+</head>
+<body data-page="proveedores" data-nav="proveedores">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
+      <nav>
+        <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div>
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div><p class="eyebrow">Abastecimiento</p><h1>Proveedores</h1><p>Crea, edita y elimina socios de suministro y sus datos de contacto.</p></div>
+        <button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button>
+      </section>
+      <section id="alerta" class="alert hidden"></section>
+      <section class="grid split">
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Proveedor</p><h2 id="proveedorFormTitle">Crear proveedor</h2></div><button class="btn ghost hidden" id="btnCancelarProveedor" type="button">Cancelar</button></div>
+          <form class="form" id="proveedorForm">
+            <input type="hidden" id="proveedorId">
+            <div class="field"><label for="proveedorNombre">Nombre</label><input id="proveedorNombre" type="text" required></div>
+            <div class="field"><label for="proveedorContacto">Contacto</label><input id="proveedorContacto" type="text"></div>
+            <div class="form-row">
+              <div class="field"><label for="proveedorTelefono">Telefono</label><input id="proveedorTelefono" type="text"></div>
+              <div class="field"><label for="proveedorEmail">Email</label><input id="proveedorEmail" type="email"></div>
+            </div>
+            <div class="field"><label for="proveedorDireccion">Direccion</label><textarea id="proveedorDireccion" rows="3"></textarea></div>
+            <button class="btn primary full" type="submit">Guardar proveedor</button>
+          </form>
+        </article>
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Compras</p><h2>Proveedores registrados</h2></div><span class="pill" id="proveedoresCounter">0 registros</span></div>
+          <div class="table-wrap" id="proveedoresTable"><p class="loading">Cargando...</p></div>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

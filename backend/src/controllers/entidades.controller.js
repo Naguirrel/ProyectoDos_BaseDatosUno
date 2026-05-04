@@ -40,6 +40,86 @@ const getVentas = async (req, res) => {
   }
 };
 
+const createCliente = async (req, res) => {
+  try {
+    const { nombre, apellido, telefono, email, nit, fecha_registro } = req.body;
+
+    if (!nombre || !fecha_registro) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO cliente (nombre, apellido, telefono, email, nit, fecha_registro)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [nombre, apellido || null, telefono || null, email || null, nit || null, fecha_registro]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al crear cliente' });
+  }
+};
+
+const updateCliente = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, apellido, telefono, email, nit, fecha_registro } = req.body;
+
+    const result = await pool.query(
+      `UPDATE cliente
+       SET nombre = $1, apellido = $2, telefono = $3, email = $4, nit = $5, fecha_registro = $6
+       WHERE id_cliente = $7
+       RETURNING *`,
+      [nombre, apellido || null, telefono || null, email || null, nit || null, fecha_registro, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al actualizar cliente' });
+  }
+};
+
+const deleteCliente = async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const { id } = req.params;
+
+    await client.query('BEGIN');
+    await client.query(`
+      DELETE FROM detalle_venta
+      WHERE id_venta IN (SELECT id_venta FROM venta WHERE id_cliente = $1)
+    `, [id]);
+    await client.query(`DELETE FROM venta WHERE id_cliente = $1`, [id]);
+
+    const result = await client.query(
+      `DELETE FROM cliente WHERE id_cliente = $1 RETURNING id_cliente`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    await client.query('COMMIT');
+    res.json({ message: 'Cliente eliminado correctamente' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar cliente' });
+  } finally {
+    client.release();
+  }
+};
+
 const getEmpleados = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -221,6 +301,86 @@ const getProveedores = async (req, res) => {
   }
 };
 
+const createProveedor = async (req, res) => {
+  try {
+    const { nombre, contacto, telefono, email, direccion } = req.body;
+
+    if (!nombre) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO proveedor (nombre, contacto, telefono, email, direccion)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [nombre, contacto || null, telefono || null, email || null, direccion || null]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al crear proveedor' });
+  }
+};
+
+const updateProveedor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, contacto, telefono, email, direccion } = req.body;
+
+    const result = await pool.query(
+      `UPDATE proveedor
+       SET nombre = $1, contacto = $2, telefono = $3, email = $4, direccion = $5
+       WHERE id_proveedor = $6
+       RETURNING *`,
+      [nombre, contacto || null, telefono || null, email || null, direccion || null, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Proveedor no encontrado' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al actualizar proveedor' });
+  }
+};
+
+const deleteProveedor = async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const { id } = req.params;
+
+    await client.query('BEGIN');
+    await client.query(`DELETE FROM detalle_compra WHERE id_compra IN (SELECT id_compra FROM compra WHERE id_proveedor = $1)`, [id]);
+    await client.query(`DELETE FROM compra WHERE id_proveedor = $1`, [id]);
+    await client.query(`DELETE FROM detalle_venta WHERE id_producto IN (SELECT id_producto FROM producto WHERE id_proveedor = $1)`, [id]);
+    await client.query(`DELETE FROM detalle_compra WHERE id_producto IN (SELECT id_producto FROM producto WHERE id_proveedor = $1)`, [id]);
+    await client.query(`DELETE FROM producto WHERE id_proveedor = $1`, [id]);
+
+    const result = await client.query(
+      `DELETE FROM proveedor WHERE id_proveedor = $1 RETURNING id_proveedor`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Proveedor no encontrado' });
+    }
+
+    await client.query('COMMIT');
+    res.json({ message: 'Proveedor eliminado correctamente' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar proveedor' });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   getClientes,
   getVentas,
@@ -229,7 +389,13 @@ module.exports = {
   createVenta,
   updateVenta,
   deleteVenta,
+  createCliente,
+  updateCliente,
+  deleteCliente,
   createEmpleado,
   updateEmpleado,
-  deleteEmpleado
+  deleteEmpleado,
+  createProveedor,
+  updateProveedor,
+  deleteProveedor
 };

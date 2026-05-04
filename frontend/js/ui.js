@@ -53,16 +53,20 @@ const ENTITY_CONFIG = {
 };
 
 let productos = [];
+let clientes = [];
 let ventas = [];
 let empleados = [];
+let proveedores = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   setActiveNav();
 
   if (document.body.dataset.page === "dashboard") initDashboard();
   if (document.body.dataset.page === "productos") initProductos();
+  if (document.body.dataset.page === "clientes") initClientes();
   if (document.body.dataset.page === "ventas") initVentas();
   if (document.body.dataset.page === "empleados") initEmpleados();
+  if (document.body.dataset.page === "proveedores") initProveedores();
   if (document.body.dataset.entity) initEntityPage(document.body.dataset.entity);
 });
 
@@ -115,11 +119,25 @@ function initVentas() {
   loadVentas();
 }
 
+function initClientes() {
+  document.getElementById("clienteForm").addEventListener("submit", saveCliente);
+  document.getElementById("btnCancelarCliente").addEventListener("click", resetClienteForm);
+  document.getElementById("btnRecargar").addEventListener("click", loadClientes);
+  loadClientes();
+}
+
 function initEmpleados() {
   document.getElementById("empleadoForm").addEventListener("submit", saveEmpleado);
   document.getElementById("btnCancelarEmpleado").addEventListener("click", resetEmpleadoForm);
   document.getElementById("btnRecargar").addEventListener("click", loadEmpleados);
   loadEmpleados();
+}
+
+function initProveedores() {
+  document.getElementById("proveedorForm").addEventListener("submit", saveProveedor);
+  document.getElementById("btnCancelarProveedor").addEventListener("click", resetProveedorForm);
+  document.getElementById("btnRecargar").addEventListener("click", loadProveedores);
+  loadProveedores();
 }
 
 async function loadProductos() {
@@ -284,6 +302,93 @@ async function loadVentas() {
   }
 }
 
+async function loadClientes() {
+  const table = document.getElementById("clientesTable");
+  const counter = document.getElementById("clientesCounter");
+  table.innerHTML = `<p class="loading">Cargando...</p>`;
+
+  try {
+    clientes = await BrickLandAPI.getClientes();
+    counter.textContent = `${clientes.length} registros`;
+    table.innerHTML = renderTableWithActions(clientes, [
+      { label: "ID", key: "id_cliente" },
+      { label: "Nombre", key: "nombre" },
+      { label: "Apellido", key: "apellido" },
+      { label: "Telefono", key: "telefono" },
+      { label: "Email", key: "email" },
+      { label: "NIT", key: "nit" },
+      { label: "Registro", key: "fecha_registro", type: "date" }
+    ], "editCliente", "deleteCliente", "id_cliente");
+  } catch (error) {
+    table.innerHTML = `<p class="empty">Error al cargar datos</p>`;
+    showAlert(error.message || "Error al cargar clientes", "error");
+  }
+}
+
+async function saveCliente(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("clienteId").value;
+  const payload = {
+    nombre: document.getElementById("clienteNombre").value.trim(),
+    apellido: document.getElementById("clienteApellido").value.trim(),
+    telefono: document.getElementById("clienteTelefono").value.trim(),
+    email: document.getElementById("clienteEmail").value.trim(),
+    nit: document.getElementById("clienteNit").value.trim(),
+    fecha_registro: document.getElementById("clienteFecha").value
+  };
+
+  try {
+    if (id) {
+      await BrickLandAPI.updateCliente(id, payload);
+      showAlert("Cliente actualizado", "success");
+    } else {
+      await BrickLandAPI.createCliente(payload);
+      showAlert("Cliente creado", "success");
+    }
+
+    resetClienteForm();
+    await loadClientes();
+  } catch (error) {
+    showAlert(error.message || "Error al guardar cliente", "error");
+  }
+}
+
+function editCliente(id) {
+  const cliente = clientes.find((item) => Number(item.id_cliente) === Number(id));
+  if (!cliente) return;
+
+  document.getElementById("clienteId").value = cliente.id_cliente;
+  document.getElementById("clienteNombre").value = cliente.nombre || "";
+  document.getElementById("clienteApellido").value = cliente.apellido || "";
+  document.getElementById("clienteTelefono").value = cliente.telefono || "";
+  document.getElementById("clienteEmail").value = cliente.email || "";
+  document.getElementById("clienteNit").value = cliente.nit || "";
+  document.getElementById("clienteFecha").value = toInputDate(cliente.fecha_registro);
+  document.getElementById("clienteFormTitle").textContent = "Editar cliente";
+  document.getElementById("btnCancelarCliente").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteCliente(id) {
+  if (!confirm(`Estas seguro de eliminar el cliente #${id}? Se eliminaran sus ventas asociadas.`)) return;
+
+  try {
+    await BrickLandAPI.deleteCliente(id);
+    showAlert("Cliente eliminado", "success");
+    await loadClientes();
+  } catch (error) {
+    showAlert(error.message || "Error al eliminar cliente", "error");
+  }
+}
+
+function resetClienteForm() {
+  document.getElementById("clienteForm").reset();
+  document.getElementById("clienteId").value = "";
+  document.getElementById("clienteFormTitle").textContent = "Crear cliente";
+  document.getElementById("btnCancelarCliente").classList.add("hidden");
+}
+
 async function saveVenta(event) {
   event.preventDefault();
 
@@ -368,6 +473,90 @@ async function loadEmpleados() {
     table.innerHTML = `<p class="empty">Error al cargar datos</p>`;
     showAlert(error.message || "Error al cargar empleados", "error");
   }
+}
+
+async function loadProveedores() {
+  const table = document.getElementById("proveedoresTable");
+  const counter = document.getElementById("proveedoresCounter");
+  table.innerHTML = `<p class="loading">Cargando...</p>`;
+
+  try {
+    proveedores = await BrickLandAPI.getProveedores();
+    counter.textContent = `${proveedores.length} registros`;
+    table.innerHTML = renderTableWithActions(proveedores, [
+      { label: "ID", key: "id_proveedor" },
+      { label: "Nombre", key: "nombre" },
+      { label: "Contacto", key: "contacto" },
+      { label: "Telefono", key: "telefono" },
+      { label: "Email", key: "email" },
+      { label: "Direccion", key: "direccion" }
+    ], "editProveedor", "deleteProveedor", "id_proveedor");
+  } catch (error) {
+    table.innerHTML = `<p class="empty">Error al cargar datos</p>`;
+    showAlert(error.message || "Error al cargar proveedores", "error");
+  }
+}
+
+async function saveProveedor(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("proveedorId").value;
+  const payload = {
+    nombre: document.getElementById("proveedorNombre").value.trim(),
+    contacto: document.getElementById("proveedorContacto").value.trim(),
+    telefono: document.getElementById("proveedorTelefono").value.trim(),
+    email: document.getElementById("proveedorEmail").value.trim(),
+    direccion: document.getElementById("proveedorDireccion").value.trim()
+  };
+
+  try {
+    if (id) {
+      await BrickLandAPI.updateProveedor(id, payload);
+      showAlert("Proveedor actualizado", "success");
+    } else {
+      await BrickLandAPI.createProveedor(payload);
+      showAlert("Proveedor creado", "success");
+    }
+
+    resetProveedorForm();
+    await loadProveedores();
+  } catch (error) {
+    showAlert(error.message || "Error al guardar proveedor", "error");
+  }
+}
+
+function editProveedor(id) {
+  const proveedor = proveedores.find((item) => Number(item.id_proveedor) === Number(id));
+  if (!proveedor) return;
+
+  document.getElementById("proveedorId").value = proveedor.id_proveedor;
+  document.getElementById("proveedorNombre").value = proveedor.nombre || "";
+  document.getElementById("proveedorContacto").value = proveedor.contacto || "";
+  document.getElementById("proveedorTelefono").value = proveedor.telefono || "";
+  document.getElementById("proveedorEmail").value = proveedor.email || "";
+  document.getElementById("proveedorDireccion").value = proveedor.direccion || "";
+  document.getElementById("proveedorFormTitle").textContent = "Editar proveedor";
+  document.getElementById("btnCancelarProveedor").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteProveedor(id) {
+  if (!confirm(`Estas seguro de eliminar el proveedor #${id}? Tambien se eliminaran productos y compras asociadas.`)) return;
+
+  try {
+    await BrickLandAPI.deleteProveedor(id);
+    showAlert("Proveedor eliminado", "success");
+    await loadProveedores();
+  } catch (error) {
+    showAlert(error.message || "Error al eliminar proveedor", "error");
+  }
+}
+
+function resetProveedorForm() {
+  document.getElementById("proveedorForm").reset();
+  document.getElementById("proveedorId").value = "";
+  document.getElementById("proveedorFormTitle").textContent = "Crear proveedor";
+  document.getElementById("btnCancelarProveedor").classList.add("hidden");
 }
 
 async function saveEmpleado(event) {
@@ -475,7 +664,11 @@ function showAlert(message, type = "success") {
 
 window.editProducto = editProducto;
 window.deleteProducto = deleteProducto;
+window.editCliente = editCliente;
+window.deleteCliente = deleteCliente;
 window.editVenta = editVenta;
 window.deleteVenta = deleteVenta;
 window.editEmpleado = editEmpleado;
 window.deleteEmpleado = deleteEmpleado;
+window.editProveedor = editProveedor;
+window.deleteProveedor = deleteProveedor;
