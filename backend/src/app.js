@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const productosRoutes = require('./routes/productos.routes');
 const reportesRoutes = require('./routes/reportes.routes');
+const entidadesRoutes = require('./routes/entidades.routes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
 // Configurar rutas
 app.use('/productos', productosRoutes);
 app.use('/reportes', reportesRoutes);
+app.use('/', entidadesRoutes);
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickLand Store | Reportes SQL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body data-nav="reportes">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="../index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
+      <nav>
+        <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="../index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="../productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="../clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="../ventas.html">Ventas</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="../empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="../proveedores.html">Proveedores</a><a class="nav-link active" data-nav="reportes" href="index.html">Reportes SQL</a></div>
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div><p class="eyebrow">Analitica SQL</p><h1>Centro de reportes</h1><p>Selecciona una consulta para revisar resultados operativos y la sentencia SQL utilizada.</p></div>
+        <a class="btn secondary" href="../index.html">Volver al dashboard</a>
+      </section>
+      <section class="grid reports-grid">
+        <article class="card report-card"><div><span class="pill">JOIN</span><h3>Clientes y sus compras</h3><p>Relaciona clientes con sus ventas acumuladas mediante JOIN.</p></div><a class="btn primary" href="join.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">VIEW</span><h3>Vista de productos</h3><p>Consulta una vista SQL con producto, categoria y proveedor.</p></div><a class="btn primary" href="vista.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">TRANSACCION</span><h3>Venta simulada</h3><p>Ejecuta BEGIN, UPDATE y ROLLBACK para demostrar control transaccional.</p></div><a class="btn primary" href="transaccion.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">AGREGACION</span><h3>Productos mas vendidos</h3><p>Ranking de productos por unidades vendidas.</p></div><a class="btn primary" href="productos-mas-vendidos.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">INGRESOS</span><h3>Ingresos por fecha</h3><p>Totales de venta agrupados por fecha.</p></div><a class="btn primary" href="ingresos.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">SUBQUERY</span><h3>Productos caros</h3><p>Productos cuyo precio supera el promedio del catalogo.</p></div><a class="btn primary" href="productos-caros.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">CTE</span><h3>Ventas con CTE</h3><p>Consulta avanzada con tabla comun para totales por producto.</p></div><a class="btn primary" href="ventas-cte.html">Ver reporte</a></article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -8,78 +8,58 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
 </head>
-<body>
-  <header class="topbar">
-    <nav class="nav-shell">
-      <a class="brand" href="index.html" aria-label="BrickLand Store inicio">
-        <span class="brand-mark">B</span>
-        <span>
-          <strong>BrickLand Store</strong>
-          <small>Inventario y ventas</small>
-        </span>
-      </a>
-      <div class="nav-links" aria-label="Navegacion principal">
-        <a class="active" href="index.html">Inicio</a>
-        <a href="productos.html">Productos</a>
-        <a href="reportes.html">Reportes</a>
-      </div>
-    </nav>
-  </header>
-
-  <main class="page-shell">
-    <section class="hero-panel">
-      <div>
-        <p class="eyebrow">Panel administrativo</p>
-        <h1>Gestion profesional para BrickLand Store</h1>
-        <p class="hero-copy">
-          Controla productos, stock, precios y reportes de ventas desde una interfaz clara,
-          moderna y lista para presentar como proyecto universitario.
-        </p>
-        <div class="hero-actions">
-          <a class="btn primary" href="productos.html">Gestionar productos</a>
-          <a class="btn secondary" href="reportes.html">Ver reportes</a>
+<body data-page="dashboard" data-nav="dashboard">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
+      <nav>
+        <div class="nav-group">
+          <span class="nav-label">Operacion</span>
+          <a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a>
+          <a class="nav-link" data-nav="productos" href="productos.html">Productos</a>
+          <a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a>
+          <a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a>
         </div>
-      </div>
-      <div class="status-card" aria-label="Resumen del sistema">
-        <div class="status-header">
-          <span>API REST</span>
-          <strong>localhost:3000</strong>
+        <div class="nav-group">
+          <span class="nav-label">Administracion</span>
+          <a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a>
+          <a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a>
+          <a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a>
         </div>
-        <div class="status-list">
-          <div>
-            <span class="status-dot ok"></span>
-            <p>CRUD de productos</p>
-          </div>
-          <div>
-            <span class="status-dot info"></span>
-            <p>Reportes analiticos</p>
-          </div>
-          <div>
-            <span class="status-dot warn"></span>
-            <p>Control de inventario</p>
-          </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div>
+          <p class="eyebrow">Panel ejecutivo</p>
+          <h1>Panel de control de operaciones</h1>
+          <p>Gestion centralizada de inventario, ventas, clientes y analitica SQL para BrickLand Store.</p>
         </div>
-      </div>
-    </section>
-
-    <section class="metric-grid" aria-label="Modulos principales">
-      <article class="metric-card">
-        <span class="metric-icon">01</span>
-        <h2>Productos</h2>
-        <p>Alta, edicion y eliminacion con tabla organizada, estados visuales y confirmacion segura.</p>
-      </article>
-      <article class="metric-card">
-        <span class="metric-icon">02</span>
-        <h2>Reportes</h2>
-        <p>Consultas de ventas, ingresos, productos caros y CTE presentadas en tarjetas profesionales.</p>
-      </article>
-      <article class="metric-card">
-        <span class="metric-icon">03</span>
-        <h2>Experiencia</h2>
-        <p>Mensajes de exito/error, loading states y estructura responsive para escritorio y movil.</p>
-      </article>
-    </section>
-  </main>
+        <div class="toolbar">
+          <a class="btn secondary" href="productos.html">Gestionar productos</a>
+          <a class="btn primary" href="reportes/index.html">Ver reportes</a>
+        </div>
+      </section>
+      <section id="alerta" class="alert hidden"></section>
+      <section class="grid metrics">
+        <article class="card"><p class="eyebrow">Inventario</p><h2>Total productos</h2><strong class="metric-value" id="metricProductos">...</strong><p class="metric-note">Productos activos en catalogo</p></article>
+        <article class="card"><p class="eyebrow">Ingresos</p><h2>Ventas totales</h2><strong class="metric-value" id="metricVentas">...</strong><p class="metric-note">Acumulado registrado</p></article>
+        <article class="card"><p class="eyebrow">Clientes</p><h2>Clientes registrados</h2><strong class="metric-value" id="metricClientes">...</strong><p class="metric-note">Base comercial activa</p></article>
+      </section>
+      <section class="grid quick-grid">
+        <article class="card quick-card"><div><p class="eyebrow">Inventario</p><h3>Productos</h3><p>Controla precios, stock y proveedores.</p></div><a class="btn secondary" href="productos.html">Abrir modulo</a></article>
+        <article class="card quick-card"><div><p class="eyebrow">Comercial</p><h3>Clientes</h3><p>Consulta el registro comercial completo.</p></div><a class="btn secondary" href="clientes.html">Abrir modulo</a></article>
+        <article class="card quick-card"><div><p class="eyebrow">Ventas</p><h3>Transacciones</h3><p>Revisa ventas por cliente y empleado.</p></div><a class="btn secondary" href="ventas.html">Abrir modulo</a></article>
+        <article class="card quick-card"><div><p class="eyebrow">SQL</p><h3>Reportes</h3><p>Analiza JOIN, VIEW, CTE y transacciones.</p></div><a class="btn secondary" href="reportes/index.html">Abrir modulo</a></article>
+      </section>
+      <section class="card stack-top">
+        <div class="card-header"><div><p class="eyebrow">Actividad</p><h2>Ventas recientes</h2></div><span class="pill">API /ventas</span></div>
+        <div class="table-wrap" id="actividadReciente"><p class="loading">Cargando...</p></div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

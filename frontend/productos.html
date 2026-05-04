@@ -9,123 +9,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/api.js" defer></script>
-  <script src="js/productos.js" defer></script>
+  <script src="js/ui.js" defer></script>
 </head>
-<body>
-  <header class="topbar">
-    <nav class="nav-shell">
-      <a class="brand" href="index.html" aria-label="BrickLand Store inicio">
-        <span class="brand-mark">B</span>
-        <span>
-          <strong>BrickLand Store</strong>
-          <small>Inventario y ventas</small>
-        </span>
-      </a>
-      <div class="nav-links" aria-label="Navegacion principal">
-        <a href="index.html">Inicio</a>
-        <a class="active" href="productos.html">Productos</a>
-        <a href="reportes.html">Reportes</a>
-      </div>
-    </nav>
-  </header>
-
-  <main class="page-shell">
-    <section class="page-heading">
-      <div>
-        <p class="eyebrow">Inventario</p>
-        <h1>Gestion de productos</h1>
-        <p>Administra el catalogo, precios y existencias de BrickLand Store.</p>
-      </div>
-      <button class="btn secondary" id="btnRecargar" type="button">Recargar tabla</button>
-    </section>
-
-    <section id="alerta" class="alert hidden" role="status" aria-live="polite"></section>
-
-    <section class="dashboard-grid">
-      <article class="card form-card">
-        <div class="card-header">
-          <div>
-            <p class="eyebrow">Formulario</p>
-            <h2 id="formTitulo">Crear producto</h2>
-          </div>
-          <button class="btn ghost hidden" id="btnCancelar" type="button">Cancelar edicion</button>
-        </div>
-
-        <form id="productoForm" class="product-form">
-          <input type="hidden" id="productoId">
-
-          <div class="field">
-            <label for="nombre">Nombre del producto</label>
-            <input id="nombre" name="nombre" type="text" placeholder="Ej. Set Castillo Medieval" required>
-          </div>
-
-          <div class="field">
-            <label for="descripcion">Descripcion</label>
-            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Descripcion breve del producto"></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="field">
-              <label for="precio_unitario">Precio</label>
-              <input id="precio_unitario" name="precio_unitario" type="number" min="0" step="0.01" placeholder="0.00" required>
-            </div>
-            <div class="field">
-              <label for="stock">Stock</label>
-              <input id="stock" name="stock" type="number" min="0" step="1" placeholder="0" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="field">
-              <label for="stock_minimo">Stock minimo</label>
-              <input id="stock_minimo" name="stock_minimo" type="number" min="0" step="1" placeholder="5">
-            </div>
-            <div class="field">
-              <label for="id_categoria">ID categoria</label>
-              <input id="id_categoria" name="id_categoria" type="number" min="1" step="1" placeholder="1" required>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="id_proveedor">ID proveedor</label>
-            <input id="id_proveedor" name="id_proveedor" type="number" min="1" step="1" placeholder="1" required>
-          </div>
-
-          <button class="btn primary full" id="btnGuardar" type="submit">Guardar producto</button>
-        </form>
-      </article>
-
-      <article class="card table-card">
-        <div class="card-header">
-          <div>
-            <p class="eyebrow">Catalogo</p>
-            <h2>Productos registrados</h2>
-          </div>
-          <span class="pill" id="contadorProductos">0 productos</span>
-        </div>
-
-        <div id="productosLoading" class="loading hidden">Cargando...</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Categoria</th>
-                <th>Proveedor</th>
-                <th class="actions-col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="productosBody">
-              <tr>
-                <td colspan="6" class="empty-state">Cargando...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-    </section>
-  </main>
+<body data-page="productos" data-nav="productos">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
+      <nav>
+        <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div>
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div><p class="eyebrow">Inventario</p><h1>Gestion de productos</h1><p>Administra catalogo, precios, stock, categorias y proveedores desde una vista operativa.</p></div>
+        <button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button>
+      </section>
+      <section id="alerta" class="alert hidden"></section>
+      <section class="grid split">
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Producto</p><h2 id="formTitle">Crear producto</h2></div><button class="btn ghost hidden" id="btnCancelar" type="button">Cancelar</button></div>
+          <form class="form" id="productoForm">
+            <input type="hidden" id="productoId">
+            <div class="field"><label for="nombre">Nombre</label><input id="nombre" type="text" required placeholder="Set modular urbano"></div>
+            <div class="field"><label for="descripcion">Descripcion</label><textarea id="descripcion" rows="3" placeholder="Descripcion comercial"></textarea></div>
+            <div class="form-row"><div class="field"><label for="precio_unitario">Precio</label><input id="precio_unitario" type="number" min="0" step="0.01" required></div><div class="field"><label for="stock">Stock</label><input id="stock" type="number" min="0" step="1" required></div></div>
+            <div class="form-row"><div class="field"><label for="stock_minimo">Stock minimo</label><input id="stock_minimo" type="number" min="0" step="1"></div><div class="field"><label for="id_categoria">ID categoria</label><input id="id_categoria" type="number" min="1" step="1" required></div></div>
+            <div class="field"><label for="id_proveedor">ID proveedor</label><input id="id_proveedor" type="number" min="1" step="1" required></div>
+            <button class="btn primary full" type="submit">Guardar producto</button>
+          </form>
+        </article>
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Catalogo</p><h2>Productos registrados</h2></div><span class="pill" id="contadorProductos">0 registros</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Precio</th><th>Stock</th><th>Categoria</th><th>Proveedor</th><th>Acciones</th></tr></thead><tbody id="productosBody"><tr><td colspan="6" class="empty">Cargando...</td></tr></tbody></table></div>
+        </article>
+      </section>
+    </main>
+  </div>
 </body>
 </html>
