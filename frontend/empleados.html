@@ -1,1 +1,55 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BrickLand Store | Empleados</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/styles.css"><script src="js/api.js" defer></script><script src="js/ui.js" defer></script></head><body data-entity="empleados" data-nav="empleados"><div class="app"><aside class="sidebar"><a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a><nav><div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div><div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div></nav></aside><main class="main"><section class="topline"><div><p class="eyebrow">Equipo</p><h1>Empleados</h1><p>Consulta personal operativo, cargos, contacto y estado laboral.</p></div><button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button></section><section id="alerta" class="alert hidden"></section><section class="card"><div class="card-header"><div><p class="eyebrow">Administracion</p><h2>Empleados registrados</h2></div><span class="pill" id="entityCounter">0 registros</span></div><div class="table-wrap" id="entityTable"><p class="loading">Cargando...</p></div></section></main></div></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickLand Store | Empleados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+</head>
+<body data-page="empleados" data-nav="empleados">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
+      <nav>
+        <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div>
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div><p class="eyebrow">Equipo</p><h1>Empleados</h1><p>Crea, actualiza y administra el personal operativo de BrickLand Store.</p></div>
+        <button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button>
+      </section>
+      <section id="alerta" class="alert hidden"></section>
+      <section class="grid split">
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Empleado</p><h2 id="empleadoFormTitle">Crear empleado</h2></div><button class="btn ghost hidden" id="btnCancelarEmpleado" type="button">Cancelar</button></div>
+          <form class="form" id="empleadoForm">
+            <input type="hidden" id="empleadoId">
+            <div class="form-row">
+              <div class="field"><label for="empleadoNombre">Nombre</label><input id="empleadoNombre" type="text" required></div>
+              <div class="field"><label for="empleadoApellido">Apellido</label><input id="empleadoApellido" type="text" required></div>
+            </div>
+            <div class="field"><label for="empleadoCargo">Cargo</label><input id="empleadoCargo" type="text" placeholder="Vendedor"></div>
+            <div class="form-row">
+              <div class="field"><label for="empleadoTelefono">Telefono</label><input id="empleadoTelefono" type="text"></div>
+              <div class="field"><label for="empleadoEmail">Email</label><input id="empleadoEmail" type="email"></div>
+            </div>
+            <div class="field"><label for="empleadoFecha">Fecha de contratacion</label><input id="empleadoFecha" type="date" required></div>
+            <button class="btn primary full" type="submit">Guardar empleado</button>
+          </form>
+        </article>
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Administracion</p><h2>Empleados registrados</h2></div><span class="pill" id="empleadosCounter">0 registros</span></div>
+          <div class="table-wrap" id="empleadosTable"><p class="loading">Cargando...</p></div>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

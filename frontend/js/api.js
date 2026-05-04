@@ -35,6 +35,21 @@ async function request(endpoint, options = {}) {
 }
 
 const BrickLandAPI = {
+  getProductos: () => request("/productos"),
+  createProducto: (producto) => request("/productos", { method: "POST", body: producto }),
+  updateProducto: (id, producto) => request(`/productos/${id}`, { method: "PUT", body: producto }),
+  deleteProducto: (id) => request(`/productos/${id}`, { method: "DELETE" }),
+  getClientes: () => request("/clientes"),
+  getVentas: () => request("/ventas"),
+  getEmpleados: () => request("/empleados"),
+  getProveedores: () => request("/proveedores"),
+  createVenta: (venta) => request("/ventas", { method: "POST", body: venta }),
+  updateVenta: (id, venta) => request(`/ventas/${id}`, { method: "PUT", body: venta }),
+  deleteVenta: (id) => request(`/ventas/${id}`, { method: "DELETE" }),
+  createEmpleado: (empleado) => request("/empleados", { method: "POST", body: empleado }),
+  updateEmpleado: (id, empleado) => request(`/empleados/${id}`, { method: "PUT", body: empleado }),
+  deleteEmpleado: (id) => request(`/empleados/${id}`, { method: "DELETE" }),
+  getReportes: (endpoint) => request(`/reportes/${endpoint.replace(/^\/?reportes\/?/, "").replace(/^\//, "")}`),
   productos: {
     list: () => request("/productos"),
     create: (producto) => request("/productos", { method: "POST", body: producto }),
@@ -45,7 +60,13 @@ const BrickLandAPI = {
     clientes: () => request("/clientes"),
     ventas: () => request("/ventas"),
     empleados: () => request("/empleados"),
-    proveedores: () => request("/proveedores")
+    proveedores: () => request("/proveedores"),
+    createVenta: (venta) => request("/ventas", { method: "POST", body: venta }),
+    updateVenta: (id, venta) => request(`/ventas/${id}`, { method: "PUT", body: venta }),
+    deleteVenta: (id) => request(`/ventas/${id}`, { method: "DELETE" }),
+    createEmpleado: (empleado) => request("/empleados", { method: "POST", body: empleado }),
+    updateEmpleado: (id, empleado) => request(`/empleados/${id}`, { method: "PUT", body: empleado }),
+    deleteEmpleado: (id) => request(`/empleados/${id}`, { method: "DELETE" })
   },
   reportes: {
     clientesCompras: () => request("/reportes/clientes-compras"),
@@ -104,3 +125,9 @@ function formatCell(value, column) {
   if (column.type === "badge") return `<span class="badge">${escapeHtml(value)}</span>`;
   return escapeHtml(value ?? "Sin dato");
 }
+
+window.BrickLandAPI = BrickLandAPI;
+window.formatCurrency = formatCurrency;
+window.formatDate = formatDate;
+window.escapeHtml = escapeHtml;
+window.renderTable = renderTable;

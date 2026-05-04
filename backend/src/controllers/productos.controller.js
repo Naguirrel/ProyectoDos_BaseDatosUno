@@ -72,13 +72,32 @@ const updateProducto = async (req, res) => {
 };
 
 const deleteProducto = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const { id } = req.params;
-    await pool.query(`DELETE FROM producto WHERE id_producto = $1`, [id]);
+    await client.query('BEGIN');
+    await client.query(`DELETE FROM detalle_venta WHERE id_producto = $1`, [id]);
+    await client.query(`DELETE FROM detalle_compra WHERE id_producto = $1`, [id]);
+
+    const result = await client.query(
+      `DELETE FROM producto WHERE id_producto = $1 RETURNING id_producto`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    await client.query('COMMIT');
     res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error(error);
     res.status(500).json({ error: 'Error al eliminar producto' });
+  } finally {
+    client.release();
   }
 };
 

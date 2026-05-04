@@ -1,1 +1,54 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BrickLand Store | Ventas</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/styles.css"><script src="js/api.js" defer></script><script src="js/ui.js" defer></script></head><body data-entity="ventas" data-nav="ventas"><div class="app"><aside class="sidebar"><a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a><nav><div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div><div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div></nav></aside><main class="main"><section class="topline"><div><p class="eyebrow">Ventas</p><h1>Registro de ventas</h1><p>Visualiza transacciones, cliente asociado, empleado responsable y estado.</p></div><button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button></section><section id="alerta" class="alert hidden"></section><section class="card"><div class="card-header"><div><p class="eyebrow">Operacion comercial</p><h2>Ventas registradas</h2></div><span class="pill" id="entityCounter">0 registros</span></div><div class="table-wrap" id="entityTable"><p class="loading">Cargando...</p></div></section></main></div></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickLand Store | Ventas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+</head>
+<body data-page="ventas" data-nav="ventas">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
+      <nav>
+        <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div>
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="topline">
+        <div><p class="eyebrow">Ventas</p><h1>Registro de ventas</h1><p>Crea, edita y elimina ventas registradas con cliente y empleado responsable.</p></div>
+        <button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button>
+      </section>
+      <section id="alerta" class="alert hidden"></section>
+      <section class="grid split">
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Venta</p><h2 id="ventaFormTitle">Crear venta</h2></div><button class="btn ghost hidden" id="btnCancelarVenta" type="button">Cancelar</button></div>
+          <form class="form" id="ventaForm">
+            <input type="hidden" id="ventaId">
+            <div class="form-row">
+              <div class="field"><label for="ventaFecha">Fecha</label><input id="ventaFecha" type="date" required></div>
+              <div class="field"><label for="ventaTotal">Total</label><input id="ventaTotal" type="number" min="0" step="0.01" required></div>
+            </div>
+            <div class="field"><label for="ventaEstado">Estado</label><input id="ventaEstado" type="text" value="COMPLETADA" required></div>
+            <div class="form-row">
+              <div class="field"><label for="ventaCliente">ID cliente</label><input id="ventaCliente" type="number" min="1" step="1" required></div>
+              <div class="field"><label for="ventaEmpleado">ID empleado</label><input id="ventaEmpleado" type="number" min="1" step="1" required></div>
+            </div>
+            <button class="btn primary full" type="submit">Guardar venta</button>
+          </form>
+        </article>
+        <article class="card">
+          <div class="card-header"><div><p class="eyebrow">Operacion comercial</p><h2>Ventas registradas</h2></div><span class="pill" id="ventasCounter">0 registros</span></div>
+          <div class="table-wrap" id="ventasTable"><p class="loading">Cargando...</p></div>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
