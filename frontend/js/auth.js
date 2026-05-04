@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function guardSession() {
   try {
-    const session = await BrickLandAPI.getSession();
+    const session = await getCurrentSession();
 
     if (!session.authenticated) {
       window.location.href = getLoginPath();
@@ -26,7 +26,7 @@ function initLoginPage() {
   const form = document.getElementById("loginForm");
   if (!form) return;
 
-  BrickLandAPI.getSession().then((session) => {
+  getCurrentSession().then((session) => {
     if (session.authenticated) {
       window.location.href = "index.html";
     }
@@ -41,6 +41,10 @@ function initLoginPage() {
     button.textContent = "Ingresando...";
 
     try {
+      if (!window.BrickLandAPI || typeof BrickLandAPI.login !== "function") {
+        throw new Error("No se cargo correctamente js/api.js. Recarga la pagina con Ctrl + F5.");
+      }
+
       await BrickLandAPI.login({
         username: document.getElementById("username").value.trim(),
         password: document.getElementById("password").value
@@ -55,6 +59,26 @@ function initLoginPage() {
       button.textContent = "Ingresar";
     }
   });
+}
+
+async function getCurrentSession() {
+  if (window.BrickLandAPI && typeof BrickLandAPI.getSession === "function") {
+    return BrickLandAPI.getSession();
+  }
+
+  if (window.BrickLandAPI && typeof BrickLandAPI.getSesion === "function") {
+    return BrickLandAPI.getSesion();
+  }
+
+  const response = await fetch("http://localhost:3000/auth/session", {
+    credentials: "include"
+  });
+
+  if (!response.ok) {
+    return { authenticated: false };
+  }
+
+  return response.json();
 }
 
 function renderSessionActions(user) {
@@ -74,7 +98,24 @@ function renderSessionActions(user) {
 
   sidebar.appendChild(box);
   document.getElementById("btnLogout").addEventListener("click", async () => {
-    await BrickLandAPI.logout();
+    await logoutSession();
     window.location.href = getLoginPath();
   });
+}
+
+async function logoutSession() {
+  if (window.BrickLandAPI && typeof BrickLandAPI.logout === "function") {
+    return BrickLandAPI.logout();
+  }
+
+  const response = await fetch("http://localhost:3000/auth/logout", {
+    method: "POST",
+    credentials: "include"
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo cerrar sesion");
+  }
+
+  return response.json();
 }

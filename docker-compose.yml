@@ -8,3 +8,40 @@ services:
       POSTGRES_DB: brickland
     ports:
       - "5432:5432"
+    volumes:
+      - brickland_pgdata:/var/lib/postgresql/data
+      - ./database/brickland_ddl.sql:/docker-entrypoint-initdb.d/01-brickland.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proy2 -d brickland"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: brickland_api
+    environment:
+      DB_USER: proy2
+      DB_PASSWORD: secret
+      DB_NAME: brickland
+      DB_HOST: db
+      DB_PORT: 5432
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: brickland_frontend
+    ports:
+      - "5500:80"
+    depends_on:
+      - backend
+
+volumes:
+  brickland_pgdata:

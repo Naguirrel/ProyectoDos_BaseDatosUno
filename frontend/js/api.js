@@ -46,6 +46,7 @@ const BrickLandAPI = {
   }),
   logout: () => request("/auth/logout", { method: "POST", skipAuthRedirect: true }),
   getSession: () => request("/auth/session", { skipAuthRedirect: true }),
+  getSesion: () => request("/auth/session", { skipAuthRedirect: true }),
   getUsuarios: () => request("/auth/usuarios"),
   createUsuario: (usuario) => request("/auth/usuarios", { method: "POST", body: usuario }),
   updateUsuario: (id, usuario) => request(`/auth/usuarios/${id}`, { method: "PUT", body: usuario }),
@@ -162,6 +163,7 @@ window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
 window.escapeHtml = escapeHtml;
 window.renderTable = renderTable;
+window.getLoginPath = getLoginPath;
 
 function getLoginPath() {
   return window.location.pathname.includes("/reportes/")
