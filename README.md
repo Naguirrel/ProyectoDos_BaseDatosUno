@@ -1,0 +1,234 @@
+# BrickLand Store
+
+BrickLand Store es un sistema web de gestion empresarial para una tienda de productos tipo bricks/LEGO. La aplicacion permite administrar inventario, clientes, ventas, empleados, proveedores, usuarios del sistema y reportes SQL ejecutados desde una interfaz web.
+
+El proyecto esta pensado para simular un panel operativo real: un usuario inicia sesion, navega entre modulos administrativos, realiza operaciones CRUD y consulta reportes construidos sobre una base de datos PostgreSQL.
+
+## Objetivo
+
+El objetivo del sistema es centralizar la operacion de una tienda mediante:
+
+- Gestion de productos e inventario.
+- Administracion de clientes, ventas, empleados y proveedores.
+- Autenticacion de usuarios con sesion.
+- Reportes SQL visibles desde la interfaz.
+- Base de datos relacional inicializada con datos de prueba.
+- Ejecucion completa con Docker Compose.
+
+## Usuarios objetivo
+
+La aplicacion esta dirigida a:
+
+- Administradores de tienda.
+- Personal operativo encargado de ventas e inventario.
+- Usuarios academicos que desean revisar consultas SQL integradas a una aplicacion web.
+- Evaluadores que necesitan validar base de datos, backend, frontend y despliegue local.
+
+## Tecnologias utilizadas
+
+| Capa | Tecnologia |
+|---|---|
+| Frontend | HTML, CSS y JavaScript puro |
+| Backend | Node.js, Express |
+| Base de datos | PostgreSQL 15 |
+| Contenedores | Docker, Docker Compose |
+| Servidor frontend | Nginx |
+| Autenticacion | Sesion con cookie HTTP-only |
+| SQL | JOIN, subqueries, GROUP BY, HAVING, CTE, VIEW y transacciones |
+
+## Estructura del proyecto
+
+```txt
+.
+|-- backend/
+|   |-- Dockerfile
+|   |-- package.json
+|   `-- src/
+|       |-- app.js
+|       |-- controllers/
+|       |-- db/
+|       `-- routes/
+|-- database/
+|   `-- brickland_ddl.sql
+|-- frontend/
+|   |-- Dockerfile
+|   |-- nginx.conf
+|   |-- index.html
+|   |-- login.html
+|   |-- usuarios.html
+|   |-- productos.html
+|   |-- clientes.html
+|   |-- ventas.html
+|   |-- empleados.html
+|   |-- proveedores.html
+|   |-- reportes/
+|   |-- css/
+|   `-- js/
+`-- docker-compose.yml
+```
+
+## Inicio rapido con Docker
+
+Requisitos:
+
+- Docker instalado.
+- Docker Compose disponible.
+
+El repositorio incluye archivos de ejemplo para variables de entorno:
+
+```txt
+.env.example
+backend/.env.example
+```
+
+Para ejecucion local sin Docker, se puede copiar `backend/.env.example` como `backend/.env` y ajustar los valores si fuera necesario.
+
+Levantar todo el proyecto:
+
+```bash
+docker compose up --build
+```
+
+Servicios disponibles:
+
+| Servicio | URL / Puerto |
+|---|---|
+| Frontend | http://localhost:5500 |
+| Backend API | http://localhost:3000 |
+| PostgreSQL | localhost:5432 |
+
+La base de datos se inicializa automaticamente con:
+
+```txt
+database/brickland_ddl.sql
+```
+
+Si ya existe un volumen viejo de PostgreSQL y se necesita reiniciar la base desde cero:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+## Login principal
+
+Al abrir el frontend, el sistema muestra la pantalla de login.
+
+Credenciales principales:
+
+```txt
+Usuario: proy2
+Password: secret
+```
+
+El usuario principal se crea automaticamente en la tabla `usuario` si no existe.
+
+## Modulos principales
+
+| Modulo | Descripcion |
+|---|---|
+| Dashboard | Vista ejecutiva con metricas generales y actividad reciente. |
+| Productos | CRUD de productos e inventario. |
+| Clientes | CRUD de clientes. |
+| Ventas | CRUD de ventas. |
+| Empleados | CRUD de empleados. |
+| Proveedores | CRUD de proveedores. |
+| Usuarios | CRUD de usuarios persistidos en la base de datos. |
+| Reportes SQL | Consultas SQL visibles en la UI con resultados en tabla. |
+
+## Reportes SQL disponibles
+
+Todas las consultas se ejecutan desde la aplicacion web y muestran:
+
+1. Titulo del reporte.
+2. Resultado en tabla.
+3. Query SQL visible en formato tipo codigo.
+
+| Reporte | Tipo SQL | Pantalla |
+|---|---|---|
+| Clientes y sus compras | JOIN, GROUP BY, agregaciones | `frontend/reportes/join.html` |
+| Ventas, clientes y empleados | JOIN entre multiples tablas | `frontend/reportes/join-ventas-empleados.html` |
+| Proveedores e inventario | JOIN, GROUP BY, agregaciones | `frontend/reportes/join-proveedores-inventario.html` |
+| Productos caros | Subquery con AVG | `frontend/reportes/productos-caros.html` |
+| Clientes frecuentes | Subquery con IN | `frontend/reportes/subquery-clientes.html` |
+| Categorias de alta rotacion | GROUP BY, HAVING, COUNT, SUM | `frontend/reportes/group-having.html` |
+| Productos mas vendidos | JOIN, GROUP BY, SUM | `frontend/reportes/productos-mas-vendidos.html` |
+| Ingresos por fecha | GROUP BY, SUM | `frontend/reportes/ingresos.html` |
+| Ventas con CTE | CTE con WITH | `frontend/reportes/ventas-cte.html` |
+| Vista de productos | VIEW utilizada por backend | `frontend/reportes/vista.html` |
+| Transaccion de venta simulada | BEGIN, manejo de error y ROLLBACK | `frontend/reportes/transaccion.html` |
+
+## Cumplimiento de requisitos
+
+### I. Diseno de base de datos
+
+| Requisito | Estado |
+|---|---|
+| Diagrama ER con entidades, atributos, relaciones y cardinalidades | Completo en documentacion del proyecto |
+| Modelo relacional documentado | Completo en documentacion del proyecto |
+| Normalizacion justificada hasta 3FN | Completo en documentacion del proyecto |
+| DDL completo con PRIMARY KEY, FOREIGN KEY y NOT NULL | Implementado en `database/brickland_ddl.sql` |
+| Script de datos de prueba con al menos 25 registros por tabla | Implementado en `database/brickland_ddl.sql` |
+| Indices definidos explicitamente con CREATE INDEX | Implementado en `database/brickland_ddl.sql` |
+
+### II. SQL
+
+| Requisito | Implementacion |
+|---|---|
+| 3 consultas con JOIN entre multiples tablas, visibles en la UI | Clientes/compras, ventas/clientes/empleados, proveedores/inventario |
+| 2 consultas con subquery, visibles en la UI | Productos caros, clientes frecuentes |
+| Consultas con GROUP BY, HAVING y funciones de agregacion, visibles en la UI | Categorias de alta rotacion |
+| Al menos 1 consulta usando CTE (WITH), visible en la UI | Ventas con CTE |
+| Al menos 1 VIEW utilizado por backend para alimentar la UI | Vista de productos |
+| Al menos 1 transaccion explicita con manejo de error y ROLLBACK | Transaccion de venta simulada |
+
+### III. Aplicacion web
+
+| Requisito | Implementacion |
+|---|---|
+| CRUD completo de al menos 2 entidades en la interfaz | Productos, clientes, ventas, empleados, proveedores y usuarios |
+| Al menos 1 reporte visible en la UI con datos reales de la base de datos | Centro de reportes SQL con multiples reportes |
+| Manejo visible de errores para el usuario | Mensajes de error y estados de carga en la UI |
+| README con instrucciones funcionales y ejemplo de docker compose up | Este documento |
+
+### IV. Avanzado
+
+| Requisito | Implementacion |
+|---|---|
+| Autenticacion de usuarios con login/logout y sesion | Implementado con cookie HTTP-only |
+| Exportar al menos 1 reporte a CSV o PDF desde la UI | Pendiente de implementacion |
+
+## Comandos utiles
+
+Levantar servicios:
+
+```bash
+docker compose up --build
+```
+
+Apagar servicios:
+
+```bash
+docker compose down
+```
+
+Reiniciar base de datos desde cero:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+Ver logs:
+
+```bash
+docker compose logs -f
+```
+
+## Notas de uso
+
+- El frontend corre en `http://localhost:5500`.
+- El backend corre en `http://localhost:3000`.
+- La API requiere sesion activa para acceder a los modulos protegidos.
+- Los usuarios nuevos creados desde la pantalla `Usuarios` se guardan en PostgreSQL y permanecen despues de reiniciar los contenedores, mientras no se elimine el volumen de Docker.
+- Si se hacen cambios en frontend o backend, usar `docker compose up --build` para reconstruir imagenes.
