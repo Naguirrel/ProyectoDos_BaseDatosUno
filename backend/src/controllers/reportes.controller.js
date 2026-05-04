@@ -43,6 +43,56 @@ FROM cliente c
 LEFT JOIN venta v ON c.id_cliente = v.id_cliente
 GROUP BY c.id_cliente, c.nombre, c.apellido, c.email
 ORDER BY total_comprado DESC;`,
+  ventasClientesEmpleados: `
+SELECT
+  v.id_venta,
+  v.fecha,
+  CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) AS cliente,
+  CONCAT(e.nombre, ' ', e.apellido) AS empleado,
+  v.estado,
+  v.total
+FROM venta v
+JOIN cliente c ON v.id_cliente = c.id_cliente
+JOIN empleado e ON v.id_empleado = e.id_empleado
+ORDER BY v.fecha DESC, v.id_venta DESC;`,
+  proveedoresInventario: `
+SELECT
+  pr.nombre AS proveedor,
+  c.nombre AS categoria,
+  COUNT(p.id_producto) AS productos_suministrados,
+  SUM(p.stock) AS stock_total,
+  ROUND(AVG(p.precio_unitario), 2) AS precio_promedio
+FROM proveedor pr
+JOIN producto p ON pr.id_proveedor = p.id_proveedor
+JOIN categoria c ON p.id_categoria = c.id_categoria
+GROUP BY pr.nombre, c.nombre
+ORDER BY proveedor, categoria;`,
+  clientesFrecuentesSubquery: `
+SELECT
+  c.id_cliente,
+  CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) AS cliente,
+  c.email,
+  c.nit
+FROM cliente c
+WHERE c.id_cliente IN (
+  SELECT v.id_cliente
+  FROM venta v
+  GROUP BY v.id_cliente
+  HAVING COUNT(v.id_venta) >= 1
+)
+ORDER BY cliente;`,
+  categoriasAltaRotacion: `
+SELECT
+  c.nombre AS categoria,
+  COUNT(DISTINCT p.id_producto) AS productos,
+  SUM(dv.cantidad) AS unidades_vendidas,
+  SUM(dv.subtotal) AS ingresos_generados
+FROM categoria c
+JOIN producto p ON c.id_categoria = p.id_categoria
+JOIN detalle_venta dv ON p.id_producto = dv.id_producto
+GROUP BY c.nombre
+HAVING SUM(dv.cantidad) >= 2
+ORDER BY unidades_vendidas DESC;`,
   vistaProductosCreate: `
 CREATE OR REPLACE VIEW vista_productos_detalle AS
 SELECT
@@ -113,6 +163,50 @@ const clientesCompras = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error en reporte clientes y compras' });
+  }
+};
+
+const ventasClientesEmpleados = async (req, res) => {
+  try {
+    const result = await pool.query(SQL_QUERIES.ventasClientesEmpleados);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en reporte ventas, clientes y empleados' });
+  }
+};
+
+const proveedoresInventario = async (req, res) => {
+  try {
+    const result = await pool.query(SQL_QUERIES.proveedoresInventario);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en reporte proveedores e inventario' });
+  }
+};
+
+const clientesFrecuentesSubquery = async (req, res) => {
+  try {
+    const result = await pool.query(SQL_QUERIES.clientesFrecuentesSubquery);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en reporte clientes frecuentes' });
+  }
+};
+
+const categoriasAltaRotacion = async (req, res) => {
+  try {
+    const result = await pool.query(SQL_QUERIES.categoriasAltaRotacion);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en reporte categorias de alta rotacion' });
   }
 };
 
@@ -187,6 +281,10 @@ module.exports = {
   productosCaros,
   ventasCTE,
   clientesCompras,
+  ventasClientesEmpleados,
+  proveedoresInventario,
+  clientesFrecuentesSubquery,
+  categoriasAltaRotacion,
   vistaProductos,
   transaccionVenta
 };
