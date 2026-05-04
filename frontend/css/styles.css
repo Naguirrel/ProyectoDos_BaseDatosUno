@@ -43,6 +43,48 @@ button, input, textarea { font: inherit; }
   background: #ffffff;
 }
 
+.login-layout {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+}
+
+.login-card {
+  width: min(440px, 100%);
+}
+
+.login-card .brand {
+  padding: 0 0 24px;
+}
+
+.session-box {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+
+.session-box span,
+.session-box strong {
+  display: block;
+}
+
+.session-box span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.session-box strong {
+  margin-top: 4px;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -231,6 +273,18 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
   outline: none;
 }
 .field select:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12); }
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-weight: 800;
+}
+
+.checkbox-field input {
+  width: 18px;
+  height: 18px;
+}
 
 .table-wrap { width: 100%; overflow-x: auto; }
 table { width: 100%; min-width: 760px; border-collapse: collapse; }

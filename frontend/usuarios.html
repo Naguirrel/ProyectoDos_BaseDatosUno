@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BrickLand Store | Proveedores</title>
+  <title>BrickLand Store | Usuarios</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   <script src="js/auth.js" defer></script>
   <script src="js/ui.js" defer></script>
 </head>
-<body data-page="proveedores" data-nav="proveedores">
+<body data-page="usuarios" data-nav="usuarios">
   <div class="app">
     <aside class="sidebar">
       <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
@@ -23,28 +23,28 @@
     </aside>
     <main class="main">
       <section class="topline">
-        <div><p class="eyebrow">Abastecimiento</p><h1>Proveedores</h1><p>Crea, edita y elimina socios de suministro y sus datos de contacto.</p></div>
+        <div><p class="eyebrow">Seguridad</p><h1>Usuarios del sistema</h1><p>Crea usuarios persistentes en la base de datos para iniciar sesion posteriormente.</p></div>
         <button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button>
       </section>
       <section id="alerta" class="alert hidden"></section>
       <section class="grid split">
         <article class="card">
-          <div class="card-header"><div><p class="eyebrow">Proveedor</p><h2 id="proveedorFormTitle">Crear proveedor</h2></div><button class="btn ghost hidden" id="btnCancelarProveedor" type="button">Cancelar</button></div>
-          <form class="form" id="proveedorForm">
-            <input type="hidden" id="proveedorId">
-            <div class="field"><label for="proveedorNombre">Nombre</label><input id="proveedorNombre" type="text" required></div>
-            <div class="field"><label for="proveedorContacto">Contacto</label><input id="proveedorContacto" type="text"></div>
+          <div class="card-header"><div><p class="eyebrow">Usuario</p><h2 id="usuarioFormTitle">Crear usuario</h2></div><button class="btn ghost hidden" id="btnCancelarUsuario" type="button">Cancelar</button></div>
+          <form class="form" id="usuarioForm">
+            <input type="hidden" id="usuarioId">
+            <div class="field"><label for="usuarioUsername">Username</label><input id="usuarioUsername" type="text" required autocomplete="off"></div>
+            <div class="field"><label for="usuarioPassword">Password</label><input id="usuarioPassword" type="password" autocomplete="new-password"></div>
             <div class="form-row">
-              <div class="field"><label for="proveedorTelefono">Telefono</label><input id="proveedorTelefono" type="text"></div>
-              <div class="field"><label for="proveedorEmail">Email</label><input id="proveedorEmail" type="email"></div>
+              <div class="field"><label for="usuarioRol">Rol</label><input id="usuarioRol" type="text" value="vendedor" required></div>
+              <div class="field"><label for="usuarioEmpleado">ID empleado</label><input id="usuarioEmpleado" type="number" min="1" step="1" placeholder="Opcional"></div>
             </div>
-            <div class="field"><label for="proveedorDireccion">Direccion</label><textarea id="proveedorDireccion" rows="3"></textarea></div>
-            <button class="btn primary full" type="submit">Guardar proveedor</button>
+            <label class="checkbox-field"><input id="usuarioActivo" type="checkbox" checked> Usuario activo</label>
+            <button class="btn primary full" type="submit">Guardar usuario</button>
           </form>
         </article>
         <article class="card">
-          <div class="card-header"><div><p class="eyebrow">Compras</p><h2>Proveedores registrados</h2></div><span class="pill" id="proveedoresCounter">0 registros</span></div>
-          <div class="table-wrap" id="proveedoresTable"><p class="loading">Cargando...</p></div>
+          <div class="card-header"><div><p class="eyebrow">Accesos</p><h2>Usuarios registrados</h2></div><span class="pill" id="usuariosCounter">0 registros</span></div>
+          <div class="table-wrap" id="usuariosTable"><p class="loading">Cargando...</p></div>
         </article>
       </section>
     </main>

@@ -57,6 +57,7 @@ let clientes = [];
 let ventas = [];
 let empleados = [];
 let proveedores = [];
+let usuarios = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   setActiveNav();
@@ -67,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.body.dataset.page === "ventas") initVentas();
   if (document.body.dataset.page === "empleados") initEmpleados();
   if (document.body.dataset.page === "proveedores") initProveedores();
+  if (document.body.dataset.page === "usuarios") initUsuarios();
   if (document.body.dataset.entity) initEntityPage(document.body.dataset.entity);
 });
 
@@ -138,6 +140,13 @@ function initProveedores() {
   document.getElementById("btnCancelarProveedor").addEventListener("click", resetProveedorForm);
   document.getElementById("btnRecargar").addEventListener("click", loadProveedores);
   loadProveedores();
+}
+
+function initUsuarios() {
+  document.getElementById("usuarioForm").addEventListener("submit", saveUsuario);
+  document.getElementById("btnCancelarUsuario").addEventListener("click", resetUsuarioForm);
+  document.getElementById("btnRecargar").addEventListener("click", loadUsuarios);
+  loadUsuarios();
 }
 
 async function loadProductos() {
@@ -497,6 +506,100 @@ async function loadProveedores() {
   }
 }
 
+async function loadUsuarios() {
+  const table = document.getElementById("usuariosTable");
+  const counter = document.getElementById("usuariosCounter");
+  table.innerHTML = `<p class="loading">Cargando...</p>`;
+
+  try {
+    usuarios = await BrickLandAPI.getUsuarios();
+    counter.textContent = `${usuarios.length} registros`;
+    table.innerHTML = renderTableWithActions(usuarios, [
+      { label: "ID", key: "id_usuario" },
+      { label: "Username", key: "username" },
+      { label: "Rol", key: "rol", type: "badge" },
+      { label: "Activo", key: "activo", type: "boolean" },
+      { label: "Empleado", key: "id_empleado" }
+    ], "editUsuario", "deleteUsuario", "id_usuario");
+  } catch (error) {
+    table.innerHTML = `<p class="empty">Error al cargar datos</p>`;
+    showAlert(error.message || "Error al cargar usuarios", "error");
+  }
+}
+
+async function saveUsuario(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("usuarioId").value;
+  const password = document.getElementById("usuarioPassword").value;
+  const payload = {
+    username: document.getElementById("usuarioUsername").value.trim(),
+    rol: document.getElementById("usuarioRol").value.trim(),
+    activo: document.getElementById("usuarioActivo").checked,
+    id_empleado: Number(document.getElementById("usuarioEmpleado").value) || null
+  };
+
+  if (password) {
+    payload.password = password;
+  }
+
+  if (!id && !password) {
+    showAlert("El password es obligatorio al crear usuario", "error");
+    return;
+  }
+
+  try {
+    if (id) {
+      await BrickLandAPI.updateUsuario(id, payload);
+      showAlert("Usuario actualizado", "success");
+    } else {
+      await BrickLandAPI.createUsuario(payload);
+      showAlert("Usuario creado", "success");
+    }
+
+    resetUsuarioForm();
+    await loadUsuarios();
+  } catch (error) {
+    showAlert(error.message || "Error al guardar usuario", "error");
+  }
+}
+
+function editUsuario(id) {
+  const usuario = usuarios.find((item) => Number(item.id_usuario) === Number(id));
+  if (!usuario) return;
+
+  document.getElementById("usuarioId").value = usuario.id_usuario;
+  document.getElementById("usuarioUsername").value = usuario.username || "";
+  document.getElementById("usuarioPassword").value = "";
+  document.getElementById("usuarioRol").value = usuario.rol || "";
+  document.getElementById("usuarioEmpleado").value = usuario.id_empleado || "";
+  document.getElementById("usuarioActivo").checked = Boolean(usuario.activo);
+  document.getElementById("usuarioFormTitle").textContent = "Editar usuario";
+  document.getElementById("btnCancelarUsuario").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteUsuario(id) {
+  if (!confirm(`Estas seguro de eliminar el usuario #${id}?`)) return;
+
+  try {
+    await BrickLandAPI.deleteUsuario(id);
+    showAlert("Usuario eliminado", "success");
+    await loadUsuarios();
+  } catch (error) {
+    showAlert(error.message || "Error al eliminar usuario", "error");
+  }
+}
+
+function resetUsuarioForm() {
+  document.getElementById("usuarioForm").reset();
+  document.getElementById("usuarioId").value = "";
+  document.getElementById("usuarioRol").value = "vendedor";
+  document.getElementById("usuarioActivo").checked = true;
+  document.getElementById("usuarioFormTitle").textContent = "Crear usuario";
+  document.getElementById("btnCancelarUsuario").classList.add("hidden");
+}
+
 async function saveProveedor(event) {
   event.preventDefault();
 
@@ -672,3 +775,5 @@ window.editEmpleado = editEmpleado;
 window.deleteEmpleado = deleteEmpleado;
 window.editProveedor = editProveedor;
 window.deleteProveedor = deleteProveedor;
+window.editUsuario = editUsuario;
+window.deleteUsuario = deleteUsuario;

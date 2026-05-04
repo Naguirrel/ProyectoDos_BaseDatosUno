@@ -2,6 +2,7 @@ const API_BASE_URL = "http://localhost:3000";
 
 async function request(endpoint, options = {}) {
   const config = {
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {})
@@ -21,6 +22,9 @@ async function request(endpoint, options = {}) {
       : await response.text();
 
     if (!response.ok) {
+      if (response.status === 401 && !options.skipAuthRedirect) {
+        window.location.href = getLoginPath();
+      }
       throw new Error(data && data.error ? data.error : "Error al procesar la solicitud");
     }
 
@@ -35,6 +39,17 @@ async function request(endpoint, options = {}) {
 }
 
 const BrickLandAPI = {
+  login: (credentials) => request("/auth/login", {
+    method: "POST",
+    body: credentials,
+    skipAuthRedirect: true
+  }),
+  logout: () => request("/auth/logout", { method: "POST", skipAuthRedirect: true }),
+  getSession: () => request("/auth/session", { skipAuthRedirect: true }),
+  getUsuarios: () => request("/auth/usuarios"),
+  createUsuario: (usuario) => request("/auth/usuarios", { method: "POST", body: usuario }),
+  updateUsuario: (id, usuario) => request(`/auth/usuarios/${id}`, { method: "PUT", body: usuario }),
+  deleteUsuario: (id) => request(`/auth/usuarios/${id}`, { method: "DELETE" }),
   getProductos: () => request("/productos"),
   createProducto: (producto) => request("/productos", { method: "POST", body: producto }),
   updateProducto: (id, producto) => request(`/productos/${id}`, { method: "PUT", body: producto }),
@@ -147,3 +162,9 @@ window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
 window.escapeHtml = escapeHtml;
 window.renderTable = renderTable;
+
+function getLoginPath() {
+  return window.location.pathname.includes("/reportes/")
+    ? "../login.html"
+    : "login.html";
+}
