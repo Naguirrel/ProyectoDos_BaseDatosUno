@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickLand Store | Productos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/productos.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav-shell">
+      <a class="brand" href="index.html" aria-label="BrickLand Store inicio">
+        <span class="brand-mark">B</span>
+        <span>
+          <strong>BrickLand Store</strong>
+          <small>Inventario y ventas</small>
+        </span>
+      </a>
+      <div class="nav-links" aria-label="Navegacion principal">
+        <a href="index.html">Inicio</a>
+        <a class="active" href="productos.html">Productos</a>
+        <a href="reportes.html">Reportes</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Inventario</p>
+        <h1>Gestion de productos</h1>
+        <p>Administra el catalogo, precios y existencias de BrickLand Store.</p>
+      </div>
+      <button class="btn secondary" id="btnRecargar" type="button">Recargar tabla</button>
+    </section>
+
+    <section id="alerta" class="alert hidden" role="status" aria-live="polite"></section>
+
+    <section class="dashboard-grid">
+      <article class="card form-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Formulario</p>
+            <h2 id="formTitulo">Crear producto</h2>
+          </div>
+          <button class="btn ghost hidden" id="btnCancelar" type="button">Cancelar edicion</button>
+        </div>
+
+        <form id="productoForm" class="product-form">
+          <input type="hidden" id="productoId">
+
+          <div class="field">
+            <label for="nombre">Nombre del producto</label>
+            <input id="nombre" name="nombre" type="text" placeholder="Ej. Set Castillo Medieval" required>
+          </div>
+
+          <div class="field">
+            <label for="descripcion">Descripcion</label>
+            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Descripcion breve del producto"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="precio_unitario">Precio</label>
+              <input id="precio_unitario" name="precio_unitario" type="number" min="0" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="field">
+              <label for="stock">Stock</label>
+              <input id="stock" name="stock" type="number" min="0" step="1" placeholder="0" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="stock_minimo">Stock minimo</label>
+              <input id="stock_minimo" name="stock_minimo" type="number" min="0" step="1" placeholder="5">
+            </div>
+            <div class="field">
+              <label for="id_categoria">ID categoria</label>
+              <input id="id_categoria" name="id_categoria" type="number" min="1" step="1" placeholder="1" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="id_proveedor">ID proveedor</label>
+            <input id="id_proveedor" name="id_proveedor" type="number" min="1" step="1" placeholder="1" required>
+          </div>
+
+          <button class="btn primary full" id="btnGuardar" type="submit">Guardar producto</button>
+        </form>
+      </article>
+
+      <article class="card table-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Catalogo</p>
+            <h2>Productos registrados</h2>
+          </div>
+          <span class="pill" id="contadorProductos">0 productos</span>
+        </div>
+
+        <div id="productosLoading" class="loading hidden">Cargando...</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Categoria</th>
+                <th>Proveedor</th>
+                <th class="actions-col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productosBody">
+              <tr>
+                <td colspan="6" class="empty-state">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

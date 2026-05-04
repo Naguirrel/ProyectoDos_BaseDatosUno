@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickLand Store | Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav-shell">
+      <a class="brand" href="index.html" aria-label="BrickLand Store inicio">
+        <span class="brand-mark">B</span>
+        <span>
+          <strong>BrickLand Store</strong>
+          <small>Inventario y ventas</small>
+        </span>
+      </a>
+      <div class="nav-links" aria-label="Navegacion principal">
+        <a class="active" href="index.html">Inicio</a>
+        <a href="productos.html">Productos</a>
+        <a href="reportes.html">Reportes</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero-panel">
+      <div>
+        <p class="eyebrow">Panel administrativo</p>
+        <h1>Gestion profesional para BrickLand Store</h1>
+        <p class="hero-copy">
+          Controla productos, stock, precios y reportes de ventas desde una interfaz clara,
+          moderna y lista para presentar como proyecto universitario.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="productos.html">Gestionar productos</a>
+          <a class="btn secondary" href="reportes.html">Ver reportes</a>
+        </div>
+      </div>
+      <div class="status-card" aria-label="Resumen del sistema">
+        <div class="status-header">
+          <span>API REST</span>
+          <strong>localhost:3000</strong>
+        </div>
+        <div class="status-list">
+          <div>
+            <span class="status-dot ok"></span>
+            <p>CRUD de productos</p>
+          </div>
+          <div>
+            <span class="status-dot info"></span>
+            <p>Reportes analiticos</p>
+          </div>
+          <div>
+            <span class="status-dot warn"></span>
+            <p>Control de inventario</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metric-grid" aria-label="Modulos principales">
+      <article class="metric-card">
+        <span class="metric-icon">01</span>
+        <h2>Productos</h2>
+        <p>Alta, edicion y eliminacion con tabla organizada, estados visuales y confirmacion segura.</p>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon">02</span>
+        <h2>Reportes</h2>
+        <p>Consultas de ventas, ingresos, productos caros y CTE presentadas en tarjetas profesionales.</p>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon">03</span>
+        <h2>Experiencia</h2>
+        <p>Mensajes de exito/error, loading states y estructura responsive para escritorio y movil.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
