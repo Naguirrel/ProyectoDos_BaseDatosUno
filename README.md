@@ -196,7 +196,6 @@ Todas las consultas se ejecutan desde la aplicacion web y muestran:
 | Requisito | Implementacion |
 |---|---|
 | Autenticacion de usuarios con login/logout y sesion | Implementado con cookie HTTP-only |
-| Exportar al menos 1 reporte a CSV o PDF desde la UI | Pendiente de implementacion |
 
 ## Comandos utiles
 
