@@ -219,6 +219,16 @@ docker compose down -v
 docker compose up --build
 ```
 
+## Preparacion Proyecto 3
+
+La preparacion tecnica para Proyecto 3 esta documentada en:
+
+- `docs/PROYECTO3_PREPARACION.md`
+- `docs/PROYECTO3_CHECKLIST.md`
+- `backend/src/orm/README.md`
+
+Esta preparacion solo deja estructura, variables documentadas y checklist. No implementa ORM, roles ni stored procedures.
+
 Ver logs:
 
 ```bash
