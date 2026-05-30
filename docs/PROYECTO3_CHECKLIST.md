@@ -2,11 +2,12 @@
 
 ## Preparacion actual
 
-- [x] Proyecto analizado sin implementar ORM.
+- [x] Proyecto analizado.
 - [x] Docker revisado.
 - [x] Variables de entorno revisadas.
 - [x] Compatibilidad PostgreSQL revisada.
 - [x] Estructura placeholder para ORM creada.
+- [x] Prisma ORM instalado y operativo sin reemplazar consultas actuales.
 - [x] Documentacion tecnica inicial creada.
 - [x] Checklist interno creado.
 - [x] Validacion de funcionamiento actual ejecutada con Docker.

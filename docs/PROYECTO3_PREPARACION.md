@@ -2,7 +2,7 @@
 
 ## Alcance de esta preparacion
 
-Esta revision deja el proyecto listo para iniciar Proyecto 3 sin implementar todavia ORM, roles ni stored procedures.
+Esta revision deja el proyecto listo para iniciar Proyecto 3 con Prisma ORM instalado y operativo, sin reemplazar consultas actuales, sin implementar roles y sin implementar stored procedures.
 
 Se mantiene el comportamiento actual:
 
@@ -28,7 +28,7 @@ Puntos activos:
 | Reportes | `backend/src/controllers/reportes.controller.js` | SQL directo para consultas academicas |
 | Auth/usuarios | `backend/src/controllers/auth.controller.js` | SQL directo y sesiones en memoria |
 
-## Preparacion ORM
+## Preparacion ORM / Prisma
 
 Se creo la carpeta:
 
@@ -46,7 +46,16 @@ migrations/
 seeders/
 ```
 
-Estas carpetas no se importan ni ejecutan todavia. Solo preparan el lugar natural para introducir un ORM en una etapa posterior.
+Estas carpetas no se importan ni ejecutan todavia. Solo preparan el lugar natural para introducir repositorios o servicios alrededor de Prisma en una etapa posterior.
+
+Prisma quedo configurado en:
+
+```txt
+backend/prisma/schema.prisma
+backend/src/prisma/client.js
+```
+
+Los controladores actuales no importan Prisma. Siguen usando SQL directo con `pg`.
 
 ## Compatibilidad PostgreSQL
 

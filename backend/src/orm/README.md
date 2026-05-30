@@ -1,11 +1,13 @@
 # Preparacion ORM - Proyecto 3
 
-Esta carpeta queda preparada para introducir un ORM en Proyecto 3 sin modificar todavia el comportamiento actual del backend.
+Esta carpeta queda preparada para introducir una capa de repositorios/modelos alrededor del ORM en Proyecto 3 sin modificar todavia el comportamiento actual del backend.
 
 Estado actual:
 
 - La aplicacion sigue usando `pg` directamente desde `backend/src/db/connection.js`.
-- No hay modelos ORM activos.
+- Prisma ORM ya esta instalado y configurado en `backend/prisma/schema.prisma`.
+- Prisma Client ya fue generado.
+- No hay modelos Prisma conectados a controladores actuales.
 - No hay migraciones ORM activas.
 - No hay sincronizacion automatica de esquema.
 - No hay cambios en rutas, controladores ni autenticacion.

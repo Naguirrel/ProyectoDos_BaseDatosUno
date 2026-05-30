@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model categoria {
+  id_categoria Int        @id @default(autoincrement())
+  nombre       String     @db.VarChar(100)
+  descripcion  String?
+  producto     producto[]
+}
+
+model cliente {
+  id_cliente     Int      @id @default(autoincrement())
+  nombre         String   @db.VarChar(100)
+  apellido       String?  @db.VarChar(100)
+  telefono       String?  @db.VarChar(20)
+  email          String?  @unique @db.VarChar(100)
+  nit            String?  @unique @db.VarChar(50)
+  fecha_registro DateTime @db.Date
+  venta          venta[]
+
+  @@index([email], map: "idx_cliente_email")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model compra {
+  id_compra      Int              @id @default(autoincrement())
+  fecha          DateTime         @db.Date
+  total          Decimal          @db.Decimal(10, 2)
+  estado         String?          @db.VarChar(50)
+  id_proveedor   Int
+  id_empleado    Int
+  empleado       empleado         @relation(fields: [id_empleado], references: [id_empleado], onDelete: NoAction, onUpdate: NoAction)
+  proveedor      proveedor        @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction)
+  detalle_compra detalle_compra[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_compra {
+  id_detalle     Int      @id @default(autoincrement())
+  id_compra      Int
+  id_producto    Int
+  cantidad       Int
+  costo_unitario Decimal  @db.Decimal(10, 2)
+  subtotal       Decimal  @db.Decimal(10, 2)
+  compra         compra   @relation(fields: [id_compra], references: [id_compra], onDelete: Cascade, onUpdate: NoAction)
+  producto       producto @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_venta {
+  id_detalle      Int      @id @default(autoincrement())
+  id_venta        Int
+  id_producto     Int
+  cantidad        Int
+  precio_unitario Decimal  @db.Decimal(10, 2)
+  subtotal        Decimal  @db.Decimal(10, 2)
+  producto        producto @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction)
+  venta           venta    @relation(fields: [id_venta], references: [id_venta], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model empleado {
+  id_empleado        Int      @id @default(autoincrement())
+  nombre             String   @db.VarChar(100)
+  apellido           String   @db.VarChar(100)
+  cargo              String?  @db.VarChar(50)
+  telefono           String?  @db.VarChar(20)
+  email              String?  @unique @db.VarChar(100)
+  fecha_contratacion DateTime @db.Date
+  activo             Boolean  @default(true)
+  compra             compra[]
+  usuario            usuario?
+  venta              venta[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model producto {
+  id_producto     Int              @id @default(autoincrement())
+  nombre          String           @db.VarChar(150)
+  descripcion     String?
+  precio_unitario Decimal          @db.Decimal(10, 2)
+  stock           Int
+  stock_minimo    Int
+  id_categoria    Int
+  id_proveedor    Int
+  detalle_compra  detalle_compra[]
+  detalle_venta   detalle_venta[]
+  categoria       categoria        @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction)
+  proveedor       proveedor        @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_categoria], map: "idx_producto_categoria")
+  @@index([nombre], map: "idx_producto_nombre")
+}
+
+model proveedor {
+  id_proveedor Int        @id @default(autoincrement())
+  nombre       String     @db.VarChar(150)
+  contacto     String?    @db.VarChar(100)
+  telefono     String?    @db.VarChar(20)
+  email        String?    @unique @db.VarChar(100)
+  direccion    String?
+  compra       compra[]
+  producto     producto[]
+}
+
+model usuario {
+  id_usuario    Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(100)
+  password_hash String
+  rol           String    @db.VarChar(50)
+  activo        Boolean   @default(true)
+  id_empleado   Int?      @unique
+  empleado      empleado? @relation(fields: [id_empleado], references: [id_empleado], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model venta {
+  id_venta      Int             @id @default(autoincrement())
+  fecha         DateTime        @db.Date
+  total         Decimal         @db.Decimal(10, 2)
+  estado        String?         @db.VarChar(50)
+  id_cliente    Int
+  id_empleado   Int
+  detalle_venta detalle_venta[]
+  cliente       cliente         @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction)
+  empleado      empleado        @relation(fields: [id_empleado], references: [id_empleado], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fecha], map: "idx_venta_fecha")
+}

@@ -225,9 +225,10 @@ La preparacion tecnica para Proyecto 3 esta documentada en:
 
 - `docs/PROYECTO3_PREPARACION.md`
 - `docs/PROYECTO3_CHECKLIST.md`
+- `docs/PRISMA_MODELOS_DETECTADOS.md`
 - `backend/src/orm/README.md`
 
-Esta preparacion solo deja estructura, variables documentadas y checklist. No implementa ORM, roles ni stored procedures.
+Esta preparacion deja estructura, variables documentadas, checklist y Prisma ORM operativo. No reemplaza consultas actuales, no modifica controladores existentes, no implementa roles ni stored procedures.
 
 Ver logs:
 
