@@ -151,7 +151,7 @@ const ventasCTE = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error en CTE de ventas' });
+    res.status(500).json({ error: 'Error en analisis de ventas avanzadas' });
   }
 };
 
@@ -222,59 +222,6 @@ const vistaProductos = async (req, res) => {
   }
 };
 
-const transaccionVenta = async (req, res) => {
-  const client = await pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
-    const productoResult = await client.query(`
-      SELECT id_producto, nombre, stock, precio_unitario
-      FROM producto
-      WHERE stock > 0
-      ORDER BY id_producto
-      LIMIT 1;
-    `);
-
-    if (productoResult.rowCount === 0) {
-      await client.query('ROLLBACK');
-      return res.json([{
-        operacion: 'ROLLBACK',
-        estado: 'Sin productos disponibles',
-        detalle: 'No se encontro inventario para simular la venta'
-      }]);
-    }
-
-    const producto = productoResult.rows[0];
-
-    await client.query(
-      'UPDATE producto SET stock = stock - 1 WHERE id_producto = $1',
-      [producto.id_producto]
-    );
-
-    const verificacion = await client.query(
-      'SELECT stock FROM producto WHERE id_producto = $1',
-      [producto.id_producto]
-    );
-
-    await client.query('ROLLBACK');
-
-    res.json([{
-      operacion: 'BEGIN / UPDATE / ROLLBACK',
-      producto: producto.nombre,
-      stock_inicial: producto.stock,
-      stock_durante_transaccion: verificacion.rows[0].stock,
-      estado: 'Transaccion simulada y revertida correctamente'
-    }]);
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error(error);
-    res.status(500).json({ error: 'Error en simulacion de transaccion' });
-  } finally {
-    client.release();
-  }
-};
-
 module.exports = {
   productosMasVendidos,
   ingresosPorFecha,
@@ -285,6 +232,5 @@ module.exports = {
   proveedoresInventario,
   clientesFrecuentesSubquery,
   categoriasAltaRotacion,
-  vistaProductos,
-  transaccionVenta
+  vistaProductos
 };

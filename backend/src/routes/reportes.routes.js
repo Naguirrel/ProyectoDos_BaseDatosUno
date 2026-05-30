@@ -11,8 +11,7 @@ const {
   proveedoresInventario,
   clientesFrecuentesSubquery,
   categoriasAltaRotacion,
-  vistaProductos,
-  transaccionVenta
+  vistaProductos
 } = require('../controllers/reportes.controller');
 
 // rutas
@@ -26,7 +25,6 @@ router.get('/proveedores-inventario', proveedoresInventario);
 router.get('/clientes-frecuentes', clientesFrecuentesSubquery);
 router.get('/categorias-alta-rotacion', categoriasAltaRotacion);
 router.get('/vista-productos', vistaProductos);
-router.get('/transaccion', transaccionVenta);
 
 
 router.get('/', (req, res) => {

@@ -18,31 +18,65 @@
       <a class="brand" href="index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
       <nav>
         <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="ventas.html">Ventas</a></div>
-        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="usuarios" href="usuarios.html">Usuarios</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes SQL</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="proveedores.html">Proveedores</a><a class="nav-link" data-nav="usuarios" href="usuarios.html">Usuarios</a><a class="nav-link" data-nav="reportes" href="reportes/index.html">Reportes</a></div>
       </nav>
     </aside>
     <main class="main">
       <section class="topline">
-        <div><p class="eyebrow">Ventas</p><h1>Registro de ventas</h1><p>Crea, edita y elimina ventas registradas con cliente y empleado responsable.</p></div>
+        <div><p class="eyebrow">Ventas</p><h1>Registro de ventas</h1><p>Registra ventas reales con cliente, empleado responsable, productos vendidos y actualizacion automatica de inventario.</p></div>
         <button class="btn secondary" id="btnRecargar" type="button">Recargar datos</button>
       </section>
       <section id="alerta" class="alert hidden"></section>
       <section class="grid split">
         <article class="card">
-          <div class="card-header"><div><p class="eyebrow">Venta</p><h2 id="ventaFormTitle">Crear venta</h2></div><button class="btn ghost hidden" id="btnCancelarVenta" type="button">Cancelar</button></div>
+          <div class="card-header"><div><p class="eyebrow">Venta</p><h2 id="ventaFormTitle">Registrar venta</h2></div><button class="btn ghost hidden" id="btnCancelarVenta" type="button">Cancelar</button></div>
           <form class="form" id="ventaForm">
             <input type="hidden" id="ventaId">
             <div class="form-row">
               <div class="field"><label for="ventaFecha">Fecha</label><input id="ventaFecha" type="date" required></div>
-              <div class="field"><label for="ventaTotal">Total</label><input id="ventaTotal" type="number" min="0" step="0.01" required></div>
+              <div class="field"><label for="ventaEstado">Estado</label><input id="ventaEstado" type="text" value="COMPLETADA" required></div>
             </div>
-            <div class="field"><label for="ventaEstado">Estado</label><input id="ventaEstado" type="text" value="COMPLETADA" required></div>
             <div class="form-row">
-              <div class="field"><label for="ventaCliente">ID cliente</label><input id="ventaCliente" type="number" min="1" step="1" required></div>
-              <div class="field"><label for="ventaEmpleado">ID empleado</label><input id="ventaEmpleado" type="number" min="1" step="1" required></div>
+              <div class="field"><label for="ventaCliente">Cliente</label><select id="ventaCliente" required><option value="">Cargando clientes...</option></select></div>
+              <div class="field"><label for="ventaEmpleado">Empleado</label><select id="ventaEmpleado" required><option value="">Cargando empleados...</option></select></div>
             </div>
+            <div class="sale-builder" id="saleBuilder">
+              <div class="sale-builder-header">
+                <div><p class="eyebrow">Detalle</p><h3>Productos de la venta</h3></div>
+                <button class="btn secondary" id="btnAgregarDetalle" type="button">Agregar producto</button>
+              </div>
+              <div class="sale-items" id="ventaDetalles"></div>
+              <div class="sale-total"><span>Total estimado</span><strong id="ventaTotalPreview">Q 0.00</strong></div>
+            </div>
+            <input id="ventaTotal" type="hidden" value="0">
             <button class="btn primary full" type="submit">Guardar venta</button>
           </form>
+          <details class="technical-info stack-top">
+            <summary>Informacion tecnica</summary>
+            <p>Esta operacion utiliza una transaccion SQL explicita para registrar la venta, insertar sus detalles y descontar inventario. Si hay stock insuficiente o un error de base de datos, se ejecuta ROLLBACK.</p>
+            <div class="transaction-steps"><span>BEGIN</span><span>COMMIT</span><span>ROLLBACK</span></div>
+            <pre class="sql-block">BEGIN;
+
+SELECT id_producto, nombre, stock, precio_unitario
+FROM producto
+WHERE id_producto = :id_producto
+FOR UPDATE;
+
+-- Si cantidad solicitada mayor a stock:
+ROLLBACK;
+
+INSERT INTO venta (fecha, total, estado, id_cliente, id_empleado)
+VALUES (:fecha, :total, :estado, :id_cliente, :id_empleado);
+
+UPDATE producto
+SET stock = stock - :cantidad
+WHERE id_producto = :id_producto;
+
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal)
+VALUES (:id_venta, :id_producto, :cantidad, :precio_unitario, :subtotal);
+
+COMMIT;</pre>
+          </details>
         </article>
         <article class="card">
           <div class="card-header"><div><p class="eyebrow">Operacion comercial</p><h2>Ventas registradas</h2></div><span class="pill" id="ventasCounter">0 registros</span></div>

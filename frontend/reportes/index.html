@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BrickLand Store | Reportes SQL</title>
+  <title>BrickLand Store | Reportes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,26 +17,25 @@
       <a class="brand" href="../index.html"><span class="brand-mark">B</span><span><strong>BrickLand Store</strong><span>Operations Console</span></span></a>
       <nav>
         <div class="nav-group"><span class="nav-label">Operacion</span><a class="nav-link" data-nav="dashboard" href="../index.html">Dashboard</a><a class="nav-link" data-nav="productos" href="../productos.html">Productos</a><a class="nav-link" data-nav="clientes" href="../clientes.html">Clientes</a><a class="nav-link" data-nav="ventas" href="../ventas.html">Ventas</a></div>
-        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="../empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="../proveedores.html">Proveedores</a><a class="nav-link" data-nav="usuarios" href="../usuarios.html">Usuarios</a><a class="nav-link active" data-nav="reportes" href="index.html">Reportes SQL</a></div>
+        <div class="nav-group"><span class="nav-label">Administracion</span><a class="nav-link" data-nav="empleados" href="../empleados.html">Empleados</a><a class="nav-link" data-nav="proveedores" href="../proveedores.html">Proveedores</a><a class="nav-link" data-nav="usuarios" href="../usuarios.html">Usuarios</a><a class="nav-link active" data-nav="reportes" href="index.html">Reportes</a></div>
       </nav>
     </aside>
     <main class="main">
       <section class="topline">
-        <div><p class="eyebrow">Analitica SQL</p><h1>Centro de reportes</h1><p>Selecciona una consulta para revisar resultados operativos y la sentencia SQL utilizada.</p></div>
+        <div><p class="eyebrow">Analitica de negocio</p><h1>Centro de reportes</h1><p>Consulta indicadores de clientes, ventas e inventario. Cada reporte incluye la consulta SQL utilizada como soporte academico.</p></div>
         <a class="btn secondary" href="../index.html">Volver al dashboard</a>
       </section>
       <section class="grid reports-grid">
-        <article class="card report-card"><div><span class="pill">JOIN</span><h3>Clientes y sus compras</h3><p>Relaciona clientes con sus ventas acumuladas mediante JOIN.</p></div><a class="btn primary" href="join.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">JOIN</span><h3>Ventas, clientes y empleados</h3><p>Une ventas con cliente y empleado responsable.</p></div><a class="btn primary" href="join-ventas-empleados.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">JOIN</span><h3>Proveedores e inventario</h3><p>Une proveedores, productos y categorias con agregaciones.</p></div><a class="btn primary" href="join-proveedores-inventario.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">VIEW</span><h3>Vista de productos</h3><p>Consulta una vista SQL con producto, categoria y proveedor.</p></div><a class="btn primary" href="vista.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">TRANSACCION</span><h3>Venta simulada</h3><p>Ejecuta BEGIN, UPDATE y ROLLBACK para demostrar control transaccional.</p></div><a class="btn primary" href="transaccion.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">AGREGACION</span><h3>Productos mas vendidos</h3><p>Ranking de productos por unidades vendidas.</p></div><a class="btn primary" href="productos-mas-vendidos.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">GROUP BY + HAVING</span><h3>Categorias de alta rotacion</h3><p>Agrupa categorias y filtra resultados con HAVING.</p></div><a class="btn primary" href="group-having.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">INGRESOS</span><h3>Ingresos por fecha</h3><p>Totales de venta agrupados por fecha.</p></div><a class="btn primary" href="ingresos.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">SUBQUERY</span><h3>Productos caros</h3><p>Productos cuyo precio supera el promedio del catalogo.</p></div><a class="btn primary" href="productos-caros.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">SUBQUERY IN</span><h3>Clientes frecuentes</h3><p>Clientes filtrados con una subconsulta IN.</p></div><a class="btn primary" href="subquery-clientes.html">Ver reporte</a></article>
-        <article class="card report-card"><div><span class="pill">CTE</span><h3>Ventas con CTE</h3><p>Consulta avanzada con tabla comun para totales por producto.</p></div><a class="btn primary" href="ventas-cte.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Clientes</span><h3>Clientes y compras acumuladas</h3><p>Ranking de clientes por compras realizadas y valor total comprado.</p></div><a class="btn primary" href="join.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Ventas</span><h3>Ventas por empleado</h3><p>Seguimiento de ventas con cliente atendido, empleado responsable, estado y total.</p></div><a class="btn primary" href="join-ventas-empleados.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Inventario</span><h3>Inventario por proveedor</h3><p>Resumen de productos suministrados, stock total y precio promedio por proveedor.</p></div><a class="btn primary" href="join-proveedores-inventario.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Catalogo</span><h3>Inventario detallado de productos</h3><p>Vista operativa de productos con categoria, proveedor, precio y stock disponible.</p></div><a class="btn primary" href="vista.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Demanda</span><h3>Productos mas vendidos</h3><p>Ranking de productos con mayor salida en unidades vendidas.</p></div><a class="btn primary" href="productos-mas-vendidos.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Rotacion</span><h3>Categorias con mayor rotacion</h3><p>Categorias con mas unidades vendidas e ingresos generados.</p></div><a class="btn primary" href="group-having.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Ingresos</span><h3>Ingresos por fecha</h3><p>Totales diarios de venta para revisar comportamiento comercial.</p></div><a class="btn primary" href="ingresos.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Clientes</span><h3>Clientes frecuentes</h3><p>Clientes con historial de compras registradas en la tienda.</p></div><a class="btn primary" href="subquery-clientes.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Precios</span><h3>Productos sobre el promedio de precio</h3><p>Productos cuyo precio unitario supera el promedio del catalogo.</p></div><a class="btn primary" href="productos-caros.html">Ver reporte</a></article>
+        <article class="card report-card"><div><span class="pill">Analisis</span><h3>Analisis de ventas avanzadas</h3><p>Totales por producto para evaluar desempeno comercial acumulado.</p></div><a class="btn primary" href="ventas-cte.html">Ver reporte</a></article>
       </section>
     </main>
   </div>

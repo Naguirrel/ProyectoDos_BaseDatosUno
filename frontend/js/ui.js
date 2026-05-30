@@ -58,6 +58,7 @@ let ventas = [];
 let empleados = [];
 let proveedores = [];
 let usuarios = [];
+let ventaDetalleCounter = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
   setActiveNav();
@@ -118,6 +119,10 @@ function initVentas() {
   document.getElementById("ventaForm").addEventListener("submit", saveVenta);
   document.getElementById("btnCancelarVenta").addEventListener("click", resetVentaForm);
   document.getElementById("btnRecargar").addEventListener("click", loadVentas);
+  document.getElementById("btnAgregarDetalle").addEventListener("click", () => addVentaDetalleRow());
+  document.getElementById("ventaFecha").value = new Date().toISOString().slice(0, 10);
+  setVentaDetalleMode(true);
+  loadVentaCatalogos();
   loadVentas();
 }
 
@@ -289,6 +294,130 @@ async function initEntityPage(entityKey) {
   loadEntity();
 }
 
+async function loadVentaCatalogos() {
+  try {
+    const [clientesData, empleadosData, productosData] = await Promise.all([
+      BrickLandAPI.getClientes(),
+      BrickLandAPI.getEmpleados(),
+      BrickLandAPI.getProductos()
+    ]);
+
+    clientes = clientesData;
+    empleados = empleadosData;
+    productos = productosData;
+
+    fillSelect("ventaCliente", clientes, "id_cliente", (cliente) =>
+      `${cliente.nombre} ${cliente.apellido || ""}`.trim()
+    );
+    fillSelect("ventaEmpleado", empleados, "id_empleado", (empleado) =>
+      `${empleado.nombre} ${empleado.apellido || ""}`.trim()
+    );
+
+    const detalles = document.getElementById("ventaDetalles");
+    if (detalles && detalles.children.length === 0) {
+      addVentaDetalleRow();
+    }
+  } catch (error) {
+    showAlert(error.message || "Error al cargar catalogos de venta", "error");
+  }
+}
+
+function fillSelect(id, rows, valueKey, labelFactory) {
+  const select = document.getElementById(id);
+  if (!select) return;
+
+  select.innerHTML = [
+    `<option value="">Seleccionar</option>`,
+    ...rows.map((row) => `<option value="${row[valueKey]}">${escapeHtml(labelFactory(row))}</option>`)
+  ].join("");
+}
+
+function addVentaDetalleRow(defaultValues = {}) {
+  const container = document.getElementById("ventaDetalles");
+  if (!container) return;
+
+  ventaDetalleCounter += 1;
+  const row = document.createElement("div");
+  row.className = "sale-item";
+  row.dataset.detailId = String(ventaDetalleCounter);
+  row.innerHTML = `
+    <div class="field">
+      <label for="ventaProducto${ventaDetalleCounter}">Producto</label>
+      <select id="ventaProducto${ventaDetalleCounter}" class="venta-producto" required>
+        <option value="">Seleccionar producto</option>
+        ${productos.map((producto) => `
+          <option value="${producto.id_producto}" ${Number(defaultValues.id_producto) === Number(producto.id_producto) ? "selected" : ""}>
+            ${escapeHtml(producto.nombre)} - ${formatCurrency(producto.precio_unitario)} - Stock ${escapeHtml(producto.stock)}
+          </option>
+        `).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label for="ventaCantidad${ventaDetalleCounter}">Cantidad</label>
+      <input id="ventaCantidad${ventaDetalleCounter}" class="venta-cantidad" type="number" min="1" step="1" value="${defaultValues.cantidad || 1}" required>
+    </div>
+    <button class="btn danger" type="button" aria-label="Quitar producto">Quitar</button>
+  `;
+
+  row.querySelector(".venta-producto").addEventListener("change", updateVentaTotalPreview);
+  row.querySelector(".venta-cantidad").addEventListener("input", updateVentaTotalPreview);
+  row.querySelector(".btn.danger").addEventListener("click", () => {
+    row.remove();
+    updateVentaTotalPreview();
+  });
+
+  container.appendChild(row);
+  updateVentaTotalPreview();
+}
+
+function refreshVentaDetalleOptions() {
+  const detallesActuales = getVentaDetallesPayload();
+  const container = document.getElementById("ventaDetalles");
+  if (!container) return;
+
+  container.innerHTML = "";
+  ventaDetalleCounter = 0;
+
+  if (detallesActuales.length === 0) {
+    addVentaDetalleRow();
+    return;
+  }
+
+  detallesActuales.forEach((detalle) => addVentaDetalleRow(detalle));
+}
+
+function getVentaDetallesPayload() {
+  return Array.from(document.querySelectorAll(".sale-item")).map((row) => ({
+    id_producto: Number(row.querySelector(".venta-producto").value),
+    cantidad: Number(row.querySelector(".venta-cantidad").value)
+  })).filter((detalle) => detalle.id_producto && detalle.cantidad > 0);
+}
+
+function calculateVentaTotal() {
+  return getVentaDetallesPayload().reduce((sum, detalle) => {
+    const producto = productos.find((item) => Number(item.id_producto) === Number(detalle.id_producto));
+    return sum + (Number(producto?.precio_unitario || 0) * detalle.cantidad);
+  }, 0);
+}
+
+function updateVentaTotalPreview() {
+  const total = calculateVentaTotal();
+  const totalInput = document.getElementById("ventaTotal");
+  const totalPreview = document.getElementById("ventaTotalPreview");
+
+  if (totalInput) totalInput.value = total.toFixed(2);
+  if (totalPreview) totalPreview.textContent = formatCurrency(total);
+}
+
+function setVentaDetalleMode(enabled) {
+  const builder = document.getElementById("saleBuilder");
+  if (!builder) return;
+  builder.classList.toggle("hidden", !enabled);
+  builder.querySelectorAll("select, input, button").forEach((control) => {
+    control.disabled = !enabled;
+  });
+}
+
 async function loadVentas() {
   const table = document.getElementById("ventasTable");
   const counter = document.getElementById("ventasCounter");
@@ -402,24 +531,41 @@ async function saveVenta(event) {
   event.preventDefault();
 
   const id = document.getElementById("ventaId").value;
+  const detalles = getVentaDetallesPayload();
   const payload = {
     fecha: document.getElementById("ventaFecha").value,
     total: Number(document.getElementById("ventaTotal").value),
     estado: document.getElementById("ventaEstado").value.trim(),
     id_cliente: Number(document.getElementById("ventaCliente").value),
-    id_empleado: Number(document.getElementById("ventaEmpleado").value)
+    id_empleado: Number(document.getElementById("ventaEmpleado").value),
+    detalles
   };
 
   try {
     if (id) {
-      await BrickLandAPI.updateVenta(id, payload);
+      await BrickLandAPI.updateVenta(id, {
+        fecha: payload.fecha,
+        total: payload.total,
+        estado: payload.estado,
+        id_cliente: payload.id_cliente,
+        id_empleado: payload.id_empleado
+      });
       showAlert("Venta actualizada", "success");
     } else {
-      await BrickLandAPI.createVenta(payload);
-      showAlert("Venta creada", "success");
+      if (detalles.length === 0) {
+        showAlert("Agrega al menos un producto para registrar la venta", "error");
+        return;
+      }
+
+      const response = await BrickLandAPI.createVenta(payload);
+      showAlert(response.message || "Venta registrada correctamente", "success");
     }
 
     resetVentaForm();
+    await BrickLandAPI.getProductos().then((data) => {
+      productos = data;
+      refreshVentaDetalleOptions();
+    });
     await loadVentas();
   } catch (error) {
     showAlert(error.message || "Error al guardar venta", "error");
@@ -433,11 +579,13 @@ function editVenta(id) {
   document.getElementById("ventaId").value = venta.id_venta;
   document.getElementById("ventaFecha").value = toInputDate(venta.fecha);
   document.getElementById("ventaTotal").value = venta.total || 0;
+  document.getElementById("ventaTotalPreview").textContent = formatCurrency(venta.total || 0);
   document.getElementById("ventaEstado").value = venta.estado || "COMPLETADA";
   document.getElementById("ventaCliente").value = venta.id_cliente || "";
   document.getElementById("ventaEmpleado").value = venta.id_empleado || "";
   document.getElementById("ventaFormTitle").textContent = "Editar venta";
   document.getElementById("btnCancelarVenta").classList.remove("hidden");
+  setVentaDetalleMode(false);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -456,9 +604,15 @@ async function deleteVenta(id) {
 function resetVentaForm() {
   document.getElementById("ventaForm").reset();
   document.getElementById("ventaId").value = "";
+  document.getElementById("ventaFecha").value = new Date().toISOString().slice(0, 10);
   document.getElementById("ventaEstado").value = "COMPLETADA";
-  document.getElementById("ventaFormTitle").textContent = "Crear venta";
+  document.getElementById("ventaTotal").value = "0";
+  document.getElementById("ventaTotalPreview").textContent = formatCurrency(0);
+  document.getElementById("ventaFormTitle").textContent = "Registrar venta";
   document.getElementById("btnCancelarVenta").classList.add("hidden");
+  document.getElementById("ventaDetalles").innerHTML = "";
+  setVentaDetalleMode(true);
+  addVentaDetalleRow();
 }
 
 async function loadEmpleados() {

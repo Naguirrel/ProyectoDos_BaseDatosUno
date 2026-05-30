@@ -301,6 +301,87 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
   height: 18px;
 }
 
+.sale-builder {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fbf8ff, #efffff);
+}
+
+.sale-builder-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.sale-builder-header h3 { margin-bottom: 0; }
+.sale-items { display: grid; gap: 12px; }
+
+.sale-item {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 120px auto;
+  gap: 12px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid rgba(216, 207, 255, 0.9);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.sale-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.sale-total strong {
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.technical-info {
+  padding: 16px;
+  border: 1px solid rgba(216, 207, 255, 0.9);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.technical-info summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.technical-info p {
+  margin: 14px 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.transaction-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.transaction-steps span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #0f766e;
+  background: #ccfbf1;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .table-wrap { width: 100%; overflow-x: auto; }
 table { width: 100%; min-width: 760px; border-collapse: collapse; }
 th, td { padding: 13px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
@@ -315,6 +396,16 @@ tbody tr:hover { background: #fbf8ff; }
 
 .sql-card { margin-top: 18px; }
 .stack-top { margin-top: 18px; }
+.report-sql-details summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.report-sql-details .sql-block {
+  margin-top: 16px;
+}
+
 .sql-block {
   overflow-x: auto;
   margin: 0;
@@ -340,7 +431,8 @@ tbody tr:hover { background: #fbf8ff; }
 @media (max-width: 680px) {
   .main { padding: 20px 14px 34px; }
   .topline, .card-header { flex-direction: column; }
-  .form-row { grid-template-columns: 1fr; }
+  .form-row, .sale-item { grid-template-columns: 1fr; }
+  .sale-builder-header, .sale-total { align-items: stretch; flex-direction: column; }
   .toolbar, .btn { width: 100%; }
   .nav-group { grid-template-columns: 1fr; }
 }

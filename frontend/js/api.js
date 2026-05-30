@@ -99,7 +99,6 @@ const BrickLandAPI = {
   reportes: {
     clientesCompras: () => request("/reportes/clientes-compras"),
     vistaProductos: () => request("/reportes/vista-productos"),
-    transaccion: () => request("/reportes/transaccion"),
     ventasClientesEmpleados: () => request("/reportes/ventas-clientes-empleados"),
     proveedoresInventario: () => request("/reportes/proveedores-inventario"),
     clientesFrecuentes: () => request("/reportes/clientes-frecuentes"),

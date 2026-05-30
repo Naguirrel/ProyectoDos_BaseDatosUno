@@ -137,24 +137,144 @@ const getEmpleados = async (req, res) => {
 };
 
 const createVenta = async (req, res) => {
-  try {
-    const { fecha, total, estado, id_cliente, id_empleado } = req.body;
+  const client = await pool.connect();
+  let transactionStarted = false;
+  let transactionCommitted = false;
 
-    if (!fecha || total === undefined || !id_cliente || !id_empleado) {
+  try {
+    const { fecha, estado, id_cliente, id_empleado, detalles } = req.body;
+
+    if (!fecha || !id_cliente || !id_empleado || !Array.isArray(detalles) || detalles.length === 0) {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    const result = await pool.query(
+    await client.query('BEGIN');
+    transactionStarted = true;
+
+    const clienteResult = await client.query(
+      `SELECT id_cliente FROM cliente WHERE id_cliente = $1`,
+      [id_cliente]
+    );
+
+    if (clienteResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Cliente inexistente' });
+    }
+
+    const empleadoResult = await client.query(
+      `SELECT id_empleado FROM empleado WHERE id_empleado = $1 AND activo = TRUE`,
+      [id_empleado]
+    );
+
+    if (empleadoResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Empleado inexistente o inactivo' });
+    }
+
+    const detallesAgrupados = detalles.reduce((acc, detalle) => {
+      const idProducto = Number(detalle.id_producto);
+      const cantidad = Number(detalle.cantidad);
+
+      if (!idProducto || !cantidad || cantidad <= 0) {
+        return acc;
+      }
+
+      acc.set(idProducto, (acc.get(idProducto) || 0) + cantidad);
+      return acc;
+    }, new Map());
+
+    if (detallesAgrupados.size === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Producto o cantidad invalida' });
+    }
+
+    const productosVenta = [];
+    let total = 0;
+
+    for (const [idProducto, cantidad] of detallesAgrupados) {
+      const productoResult = await client.query(
+        `SELECT id_producto, nombre, stock, precio_unitario
+         FROM producto
+         WHERE id_producto = $1
+         FOR UPDATE`,
+        [idProducto]
+      );
+
+      if (productoResult.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Producto inexistente' });
+      }
+
+      const producto = productoResult.rows[0];
+
+      if (cantidad > Number(producto.stock)) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          error: 'Stock insuficiente para completar la venta',
+          producto: producto.nombre,
+          stock_disponible: producto.stock,
+          cantidad_solicitada: cantidad
+        });
+      }
+
+      const precioUnitario = Number(producto.precio_unitario);
+      const subtotal = precioUnitario * cantidad;
+      total += subtotal;
+
+      productosVenta.push({
+        id_producto: idProducto,
+        cantidad,
+        precio_unitario: precioUnitario,
+        subtotal
+      });
+    }
+
+    const ventaResult = await client.query(
       `INSERT INTO venta (fecha, total, estado, id_cliente, id_empleado)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
       [fecha, total, estado || 'COMPLETADA', id_cliente, id_empleado]
     );
 
-    res.status(201).json(result.rows[0]);
+    const venta = ventaResult.rows[0];
+
+    for (const producto of productosVenta) {
+      await client.query(
+        `UPDATE producto
+         SET stock = stock - $1
+         WHERE id_producto = $2`,
+        [producto.cantidad, producto.id_producto]
+      );
+
+      await client.query(
+        `INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          venta.id_venta,
+          producto.id_producto,
+          producto.cantidad,
+          producto.precio_unitario,
+          producto.subtotal
+        ]
+      );
+    }
+
+    await client.query('COMMIT');
+    transactionCommitted = true;
+
+    res.status(201).json({
+      ...venta,
+      detalles: productosVenta,
+      message: 'Venta registrada correctamente'
+    });
   } catch (error) {
+    if (transactionStarted && !transactionCommitted) {
+      await client.query('ROLLBACK');
+    }
     console.error(error);
-    res.status(500).json({ error: 'Error al crear venta' });
+    res.status(500).json({ error: 'Error de base de datos al registrar la venta' });
+  } finally {
+    client.release();
   }
 };
 

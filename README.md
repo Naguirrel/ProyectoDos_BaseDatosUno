@@ -11,7 +11,7 @@ El objetivo del sistema es centralizar la operacion de una tienda mediante:
 - Gestion de productos e inventario.
 - Administracion de clientes, ventas, empleados y proveedores.
 - Autenticacion de usuarios con sesion.
-- Reportes SQL visibles desde la interfaz.
+- Reportes de negocio con consultas SQL visibles como soporte academico.
 - Base de datos relacional inicializada con datos de prueba.
 - Ejecucion completa con Docker Compose.
 
@@ -134,29 +134,30 @@ El usuario principal se crea automaticamente en la tabla `usuario` si no existe.
 | Empleados | CRUD de empleados. |
 | Proveedores | CRUD de proveedores. |
 | Usuarios | CRUD de usuarios persistidos en la base de datos. |
-| Reportes SQL | Consultas SQL visibles en la UI con resultados en tabla. |
+| Reportes | Indicadores de negocio con SQL visible como soporte academico. |
 
-## Reportes SQL disponibles
+## Reportes disponibles
 
 Todas las consultas se ejecutan desde la aplicacion web y muestran:
 
 1. Titulo del reporte.
 2. Resultado en tabla.
-3. Query SQL visible en formato tipo codigo.
+3. Consulta SQL disponible en un desplegable de soporte academico.
 
 | Reporte | Tipo SQL | Pantalla |
 |---|---|---|
-| Clientes y sus compras | JOIN, GROUP BY, agregaciones | `frontend/reportes/join.html` |
-| Ventas, clientes y empleados | JOIN entre multiples tablas | `frontend/reportes/join-ventas-empleados.html` |
-| Proveedores e inventario | JOIN, GROUP BY, agregaciones | `frontend/reportes/join-proveedores-inventario.html` |
-| Productos caros | Subquery con AVG | `frontend/reportes/productos-caros.html` |
+| Clientes y compras acumuladas | JOIN, GROUP BY, agregaciones | `frontend/reportes/join.html` |
+| Ventas por empleado | JOIN entre multiples tablas | `frontend/reportes/join-ventas-empleados.html` |
+| Inventario por proveedor | JOIN, GROUP BY, agregaciones | `frontend/reportes/join-proveedores-inventario.html` |
+| Productos sobre el promedio de precio | Subquery con AVG | `frontend/reportes/productos-caros.html` |
 | Clientes frecuentes | Subquery con IN | `frontend/reportes/subquery-clientes.html` |
-| Categorias de alta rotacion | GROUP BY, HAVING, COUNT, SUM | `frontend/reportes/group-having.html` |
+| Categorias con mayor rotacion | GROUP BY, HAVING, COUNT, SUM | `frontend/reportes/group-having.html` |
 | Productos mas vendidos | JOIN, GROUP BY, SUM | `frontend/reportes/productos-mas-vendidos.html` |
 | Ingresos por fecha | GROUP BY, SUM | `frontend/reportes/ingresos.html` |
-| Ventas con CTE | CTE con WITH | `frontend/reportes/ventas-cte.html` |
-| Vista de productos | VIEW utilizada por backend | `frontend/reportes/vista.html` |
-| Transaccion de venta simulada | BEGIN, manejo de error y ROLLBACK | `frontend/reportes/transaccion.html` |
+| Analisis de ventas avanzadas | CTE con WITH | `frontend/reportes/ventas-cte.html` |
+| Inventario detallado de productos | VIEW utilizada por backend | `frontend/reportes/vista.html` |
+
+La transaccion explicita ya no se presenta como reporte artificial. Se ejecuta al registrar una venta real desde `frontend/ventas.html`, con `BEGIN`, `COMMIT` y `ROLLBACK` visibles en la seccion "Informacion tecnica".
 
 ## Cumplimiento de requisitos
 
@@ -177,17 +178,17 @@ Todas las consultas se ejecutan desde la aplicacion web y muestran:
 |---|---|
 | 3 consultas con JOIN entre multiples tablas, visibles en la UI | Clientes/compras, ventas/clientes/empleados, proveedores/inventario |
 | 2 consultas con subquery, visibles en la UI | Productos caros, clientes frecuentes |
-| Consultas con GROUP BY, HAVING y funciones de agregacion, visibles en la UI | Categorias de alta rotacion |
-| Al menos 1 consulta usando CTE (WITH), visible en la UI | Ventas con CTE |
-| Al menos 1 VIEW utilizado por backend para alimentar la UI | Vista de productos |
-| Al menos 1 transaccion explicita con manejo de error y ROLLBACK | Transaccion de venta simulada |
+| Consultas con GROUP BY, HAVING y funciones de agregacion, visibles en la UI | Categorias con mayor rotacion |
+| Al menos 1 consulta usando CTE (WITH), visible en la UI | Analisis de ventas avanzadas |
+| Al menos 1 VIEW utilizado por backend para alimentar la UI | Inventario detallado de productos |
+| Al menos 1 transaccion explicita con manejo de error y ROLLBACK | Registro real de venta con validacion de stock |
 
 ### III. Aplicacion web
 
 | Requisito | Implementacion |
 |---|---|
 | CRUD completo de al menos 2 entidades en la interfaz | Productos, clientes, ventas, empleados, proveedores y usuarios |
-| Al menos 1 reporte visible en la UI con datos reales de la base de datos | Centro de reportes SQL con multiples reportes |
+| Al menos 1 reporte visible en la UI con datos reales de la base de datos | Centro de reportes de negocio con multiples consultas |
 | Manejo visible de errores para el usuario | Mensajes de error y estados de carga en la UI |
 | README con instrucciones funcionales y ejemplo de docker compose up | Este documento |
 

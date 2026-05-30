@@ -1,6 +1,6 @@
 const REPORT_CONFIG = {
   "clientes-compras": {
-    title: "Clientes y sus compras",
+    title: "Clientes y compras acumuladas",
     loader: BrickLandAPI.reportes.clientesCompras,
     columns: [
       { label: "ID cliente", key: "id_cliente" },
@@ -21,7 +21,7 @@ GROUP BY c.id_cliente, c.nombre, c.apellido, c.email
 ORDER BY total_comprado DESC;`
   },
   "vista-productos": {
-    title: "Vista de productos",
+    title: "Inventario detallado de productos",
     loader: BrickLandAPI.reportes.vistaProductos,
     columns: [
       { label: "ID", key: "id_producto" },
@@ -48,7 +48,7 @@ FROM vista_productos_detalle
 ORDER BY id_producto;`
   },
   "ventas-clientes-empleados": {
-    title: "Ventas con clientes y empleados",
+    title: "Ventas por empleado",
     loader: BrickLandAPI.reportes.ventasClientesEmpleados,
     columns: [
       { label: "Venta", key: "id_venta" },
@@ -71,7 +71,7 @@ JOIN empleado e ON v.id_empleado = e.id_empleado
 ORDER BY v.fecha DESC, v.id_venta DESC;`
   },
   "proveedores-inventario": {
-    title: "Proveedores e inventario",
+    title: "Inventario por proveedor",
     loader: BrickLandAPI.reportes.proveedoresInventario,
     columns: [
       { label: "Proveedor", key: "proveedor" },
@@ -116,7 +116,7 @@ WHERE c.id_cliente IN (
 ORDER BY cliente;`
   },
   "categorias-alta-rotacion": {
-    title: "Categorias de alta rotacion",
+    title: "Categorias con mayor rotacion",
     loader: BrickLandAPI.reportes.categoriasAltaRotacion,
     columns: [
       { label: "Categoria", key: "categoria" },
@@ -135,30 +135,6 @@ JOIN detalle_venta dv ON p.id_producto = dv.id_producto
 GROUP BY c.nombre
 HAVING SUM(dv.cantidad) >= 2
 ORDER BY unidades_vendidas DESC;`
-  },
-  transaccion: {
-    title: "Transaccion de venta simulada",
-    loader: BrickLandAPI.reportes.transaccion,
-    columns: [
-      { label: "Operacion", key: "operacion" },
-      { label: "Producto", key: "producto" },
-      { label: "Stock inicial", key: "stock_inicial" },
-      { label: "Stock transaccion", key: "stock_durante_transaccion" },
-      { label: "Estado", key: "estado" }
-    ],
-    sql: `BEGIN;
-
-SELECT id_producto, nombre, stock, precio_unitario
-FROM producto
-WHERE stock > 0
-ORDER BY id_producto
-LIMIT 1;
-
-UPDATE producto
-SET stock = stock - 1
-WHERE id_producto = :id_producto;
-
-ROLLBACK;`
   },
   "productos-mas-vendidos": {
     title: "Productos mas vendidos",
@@ -190,7 +166,7 @@ GROUP BY fecha
 ORDER BY fecha;`
   },
   "productos-caros": {
-    title: "Productos sobre precio promedio",
+    title: "Productos sobre el promedio de precio",
     loader: BrickLandAPI.reportes.productosCaros,
     columns: [
       { label: "Producto", key: "nombre" },
@@ -203,7 +179,7 @@ WHERE precio_unitario > (
 );`
   },
   "ventas-cte": {
-    title: "Ventas con CTE",
+    title: "Analisis de ventas avanzadas",
     loader: BrickLandAPI.reportes.ventasCte,
     columns: [
       { label: "Producto", key: "nombre" },
@@ -229,6 +205,13 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadReport(reportKey) {
   const config = REPORT_CONFIG[reportKey];
   const result = document.getElementById("reportResult");
+  if (!config) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  prepareReportPage();
+
   const sql = document.getElementById("reportSql");
 
   document.getElementById("reportTitle").textContent = config.title;
@@ -244,4 +227,19 @@ async function loadReport(reportKey) {
     alert.textContent = error.message || "Error al cargar datos";
     alert.className = "alert error";
   }
+}
+
+function prepareReportPage() {
+  const mainEyebrow = document.querySelector(".topline .eyebrow");
+  if (mainEyebrow) mainEyebrow.textContent = "Analisis de negocio";
+
+  const sqlCard = document.querySelector(".sql-card");
+  if (!sqlCard || sqlCard.querySelector("details")) return;
+
+  sqlCard.innerHTML = `
+    <details class="report-sql-details">
+      <summary>Ver consulta SQL utilizada</summary>
+      <pre class="sql-block" id="reportSql"></pre>
+    </details>
+  `;
 }
