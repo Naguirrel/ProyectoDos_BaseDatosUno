@@ -1,18 +1,29 @@
-const pool = require('../db/connection');
+const prisma = require('../prisma/client');
+
+function formatProductoRow(producto) {
+  return {
+    id_producto: producto.id_producto,
+    nombre: producto.nombre,
+    precio_unitario: producto.precio_unitario,
+    stock: producto.stock,
+    categoria: producto.categoria?.nombre,
+    proveedor: producto.proveedor?.nombre
+  };
+}
 
 const getProductos = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT p.id_producto, p.nombre, p.precio_unitario, p.stock,
-             c.nombre AS categoria,
-             pr.nombre AS proveedor
-      FROM producto p
-      JOIN categoria c ON p.id_categoria = c.id_categoria
-      JOIN proveedor pr ON p.id_proveedor = pr.id_proveedor
-      ORDER BY p.id_producto;
-    `);
+    const productos = await prisma.producto.findMany({
+      include: {
+        categoria: true,
+        proveedor: true
+      },
+      orderBy: {
+        id_producto: 'asc'
+      }
+    });
 
-    res.json(result.rows);
+    res.json(productos.map(formatProductoRow));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener productos' });
@@ -36,15 +47,19 @@ const createProducto = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    const result = await pool.query(
-      `INSERT INTO producto 
-      (nombre, descripcion, precio_unitario, stock, stock_minimo, id_categoria, id_proveedor)
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
-      RETURNING *`,
-      [nombre, descripcion, precio_unitario, stock, stock_minimo, id_categoria, id_proveedor]
-    );
+    const producto = await prisma.producto.create({
+      data: {
+        nombre,
+        descripcion: descripcion || null,
+        precio_unitario,
+        stock: Number(stock),
+        stock_minimo: Number(stock_minimo),
+        id_categoria: Number(id_categoria),
+        id_proveedor: Number(id_proveedor)
+      }
+    });
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(producto);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al crear producto' });
@@ -56,48 +71,68 @@ const updateProducto = async (req, res) => {
     const { id } = req.params;
     const { nombre, precio_unitario, stock } = req.body;
 
-    const result = await pool.query(
-      `UPDATE producto 
-       SET nombre = $1, precio_unitario = $2, stock = $3
-       WHERE id_producto = $4
-       RETURNING *`,
-      [nombre, precio_unitario, stock, id]
-    );
+    const producto = await prisma.producto.update({
+      where: {
+        id_producto: Number(id)
+      },
+      data: {
+        nombre,
+        precio_unitario,
+        stock: Number(stock)
+      }
+    });
 
-    res.json(result.rows[0]);
+    res.json(producto);
   } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
     console.error(error);
     res.status(500).json({ error: 'Error al actualizar producto' });
   }
 };
 
 const deleteProducto = async (req, res) => {
-  const client = await pool.connect();
-
   try {
     const { id } = req.params;
-    await client.query('BEGIN');
-    await client.query(`DELETE FROM detalle_venta WHERE id_producto = $1`, [id]);
-    await client.query(`DELETE FROM detalle_compra WHERE id_producto = $1`, [id]);
+    const idProducto = Number(id);
 
-    const result = await client.query(
-      `DELETE FROM producto WHERE id_producto = $1 RETURNING id_producto`,
-      [id]
-    );
+    const producto = await prisma.producto.findUnique({
+      where: {
+        id_producto: idProducto
+      },
+      select: {
+        id_producto: true
+      }
+    });
 
-    if (result.rowCount === 0) {
-      await client.query('ROLLBACK');
+    if (!producto) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
 
-    await client.query('COMMIT');
+    await prisma.$transaction([
+      prisma.detalle_venta.deleteMany({
+        where: {
+          id_producto: idProducto
+        }
+      }),
+      prisma.detalle_compra.deleteMany({
+        where: {
+          id_producto: idProducto
+        }
+      }),
+      prisma.producto.delete({
+        where: {
+          id_producto: idProducto
+        }
+      })
+    ]);
+
     res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
-    await client.query('ROLLBACK');
     console.error(error);
     res.status(500).json({ error: 'Error al eliminar producto' });
-  } finally {
-    client.release();
   }
 };
 
