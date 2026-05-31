@@ -85,13 +85,18 @@ function renderSessionActions(user) {
   const sidebar = document.querySelector(".sidebar");
   if (!sidebar || document.getElementById("sessionBox")) return;
 
+  const displayName = user.nombre || user.username || "Usuario";
+  const role = user.rol || "sin rol";
+
   const box = document.createElement("div");
   box.id = "sessionBox";
   box.className = "session-box";
   box.innerHTML = `
     <div>
       <span>Sesion activa</span>
-      <strong>${escapeHtml(user.username)}</strong>
+      <strong>${escapeHtml(displayName)}</strong>
+      <small>${escapeHtml(user.username || "")}</small>
+      <em>${escapeHtml(formatRole(role))}</em>
     </div>
     <button class="btn ghost full" type="button" id="btnLogout">Cerrar sesion</button>
   `;
@@ -118,4 +123,17 @@ async function logoutSession() {
   }
 
   return response.json();
+}
+
+function formatRole(role) {
+  const labels = {
+    administrador: "Administrador",
+    gerente: "Gerente",
+    vendedor: "Vendedor",
+    bodeguero: "Bodeguero",
+    analista: "Analista",
+    admin: "Administrador"
+  };
+
+  return labels[role] || role;
 }

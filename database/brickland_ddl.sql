@@ -183,6 +183,14 @@ SELECT i,(i%25)+1,5,30,150 FROM generate_series(1,25) i;
 INSERT INTO usuario (username, password_hash, rol, activo, id_empleado)
 SELECT 'user'||i,'hash'||i,'vendedor',TRUE,i FROM generate_series(1,25) i;
 
+INSERT INTO usuario (username, password_hash, rol, activo, id_empleado) VALUES
+('proy2','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','administrador',TRUE,NULL),
+('admin_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','administrador',TRUE,NULL),
+('gerente_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','gerente',TRUE,NULL),
+('vendedor_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','vendedor',TRUE,NULL),
+('bodeguero_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','bodeguero',TRUE,NULL),
+('analista_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','analista',TRUE,NULL);
+
 -- ============================================
 -- INDICES
 -- ============================================

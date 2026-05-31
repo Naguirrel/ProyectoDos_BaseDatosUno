@@ -35,7 +35,7 @@
             <div class="field"><label for="usuarioUsername">Username</label><input id="usuarioUsername" type="text" required autocomplete="off"></div>
             <div class="field"><label for="usuarioPassword">Password</label><input id="usuarioPassword" type="password" autocomplete="new-password"></div>
             <div class="form-row">
-              <div class="field"><label for="usuarioRol">Rol</label><input id="usuarioRol" type="text" value="vendedor" required></div>
+              <div class="field"><label for="usuarioRol">Rol</label><select id="usuarioRol" required><option value="administrador">Administrador</option><option value="gerente">Gerente</option><option value="vendedor" selected>Vendedor</option><option value="bodeguero">Bodeguero</option><option value="analista">Analista</option></select></div>
               <div class="field"><label for="usuarioEmpleado">ID empleado</label><input id="usuarioEmpleado" type="number" min="1" step="1" placeholder="Opcional"></div>
             </div>
             <label class="checkbox-field"><input id="usuarioActivo" type="checkbox" checked> Usuario activo</label>
