@@ -28,6 +28,21 @@ Ejemplo interno:
 CALL crear_producto(..., NULL);
 ```
 
+## Procedimiento principal de venta
+
+`registrar_venta` concentra toda la lógica de negocio de la venta:
+
+- Recibe fecha, estado, cliente, empleado y detalles de productos.
+- Valida cliente y empleado activo.
+- Agrupa cantidades por producto.
+- Bloquea productos con `FOR UPDATE`.
+- Valida stock antes de insertar cualquier venta.
+- Si falta stock, ejecuta `ROLLBACK` y retorna un JSON con `status: 409`.
+- Si todo es válido, actualiza inventario, inserta `venta`, inserta `detalle_venta` y ejecuta `COMMIT`.
+- Si ocurre una excepción, retorna un JSON de error y ejecuta `ROLLBACK`.
+
+La operación es atómica: no se descuenta inventario ni se insertan detalles si la venta no puede completarse.
+
 ## Compatibilidad
 
 - No se cambian rutas públicas de la API.

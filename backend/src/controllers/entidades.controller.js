@@ -224,7 +224,18 @@ const createVenta = async (req, res) => {
       ]
     );
 
-    res.status(201).json(result.rows[0].resultado);
+    const procedureResult = result.rows[0].resultado;
+
+    if (!procedureResult.ok) {
+      const { status, message, error, ok, ...details } = procedureResult;
+      return res.status(status || 500).json({
+        error: error || message || 'Error al registrar venta',
+        ...details
+      });
+    }
+
+    const { ok, status, ...venta } = procedureResult;
+    res.status(201).json(venta);
   } catch (error) {
     if (error.message && error.message.includes('Stock insuficiente')) {
       return res.status(409).json({ error: 'Stock insuficiente para completar la venta' });

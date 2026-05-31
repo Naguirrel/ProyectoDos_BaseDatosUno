@@ -164,119 +164,183 @@ DECLARE
   v_detalle record;
   v_total numeric(10,2) := 0;
   v_detalles_resultado jsonb := '[]'::jsonb;
-  v_stock_resultado jsonb;
+  v_debe_commit boolean := false;
 BEGIN
-  IF p_fecha IS NULL OR p_id_cliente IS NULL OR p_id_empleado IS NULL
-     OR p_detalles IS NULL OR jsonb_typeof(p_detalles) <> 'array'
-     OR jsonb_array_length(p_detalles) = 0 THEN
-    RAISE EXCEPTION 'Faltan campos obligatorios';
-  END IF;
+  -- BEGIN transaccional: PostgreSQL abre la transaccion para este CALL.
+  -- Este procedure la finaliza explicitamente con COMMIT o ROLLBACK.
+  <<logica_venta>>
+  BEGIN
+    IF p_fecha IS NULL OR p_id_cliente IS NULL OR p_id_empleado IS NULL
+       OR p_detalles IS NULL OR jsonb_typeof(p_detalles) <> 'array'
+       OR jsonb_array_length(p_detalles) = 0 THEN
+      resultado := jsonb_build_object(
+        'ok', false,
+        'status', 400,
+        'error', 'Faltan campos obligatorios',
+        'message', 'Faltan campos obligatorios'
+      );
+      EXIT logica_venta;
+    END IF;
 
-  SELECT 1 INTO v_cliente_existe
-  FROM cliente
-  WHERE id_cliente = p_id_cliente;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Cliente inexistente';
-  END IF;
-
-  SELECT 1 INTO v_empleado_existe
-  FROM empleado
-  WHERE id_empleado = p_id_empleado
-    AND activo = TRUE;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Empleado inexistente o inactivo';
-  END IF;
-
-  CREATE TEMP TABLE tmp_detalles_venta (
-    id_producto integer,
-    cantidad integer
-  ) ON COMMIT DROP;
-
-  INSERT INTO tmp_detalles_venta (id_producto, cantidad)
-  SELECT id_producto, SUM(cantidad)::integer
-  FROM jsonb_to_recordset(p_detalles) AS detalle(id_producto integer, cantidad integer)
-  WHERE id_producto IS NOT NULL
-    AND cantidad IS NOT NULL
-    AND cantidad > 0
-  GROUP BY id_producto;
-
-  IF NOT EXISTS (SELECT 1 FROM tmp_detalles_venta) THEN
-    RAISE EXCEPTION 'Producto o cantidad invalida';
-  END IF;
-
-  FOR v_detalle IN
-    SELECT id_producto, cantidad
-    FROM tmp_detalles_venta
-    ORDER BY id_producto
-  LOOP
-    SELECT id_producto, nombre, stock, precio_unitario
-    INTO v_producto
-    FROM producto
-    WHERE id_producto = v_detalle.id_producto
-    FOR UPDATE;
+    SELECT 1 INTO v_cliente_existe
+    FROM cliente
+    WHERE id_cliente = p_id_cliente;
 
     IF NOT FOUND THEN
-      RAISE EXCEPTION 'Producto inexistente';
+      resultado := jsonb_build_object(
+        'ok', false,
+        'status', 404,
+        'error', 'Cliente inexistente',
+        'message', 'Cliente inexistente'
+      );
+      EXIT logica_venta;
     END IF;
 
-    IF v_detalle.cantidad > v_producto.stock THEN
-      RAISE EXCEPTION 'Stock insuficiente para completar la venta';
+    SELECT 1 INTO v_empleado_existe
+    FROM empleado
+    WHERE id_empleado = p_id_empleado
+      AND activo = TRUE;
+
+    IF NOT FOUND THEN
+      resultado := jsonb_build_object(
+        'ok', false,
+        'status', 404,
+        'error', 'Empleado inexistente o inactivo',
+        'message', 'Empleado inexistente o inactivo'
+      );
+      EXIT logica_venta;
     END IF;
 
-    v_total := v_total + (v_producto.precio_unitario * v_detalle.cantidad);
-  END LOOP;
+    CREATE TEMP TABLE tmp_detalles_venta (
+      id_producto integer,
+      cantidad integer
+    ) ON COMMIT DROP;
 
-  INSERT INTO venta (fecha, total, estado, id_cliente, id_empleado)
-  VALUES (p_fecha, v_total, COALESCE(NULLIF(p_estado, ''), 'COMPLETADA'), p_id_cliente, p_id_empleado)
-  RETURNING *
-  INTO v_venta;
+    INSERT INTO tmp_detalles_venta (id_producto, cantidad)
+    SELECT id_producto, SUM(cantidad)::integer
+    FROM jsonb_to_recordset(p_detalles) AS detalle(id_producto integer, cantidad integer)
+    WHERE id_producto IS NOT NULL
+      AND cantidad IS NOT NULL
+      AND cantidad > 0
+    GROUP BY id_producto;
 
-  FOR v_detalle IN
-    SELECT id_producto, cantidad
-    FROM tmp_detalles_venta
-    ORDER BY id_producto
-  LOOP
-    SELECT id_producto, nombre, stock, precio_unitario
-    INTO v_producto
-    FROM producto
-    WHERE id_producto = v_detalle.id_producto
-    FOR UPDATE;
+    IF NOT EXISTS (SELECT 1 FROM tmp_detalles_venta) THEN
+      resultado := jsonb_build_object(
+        'ok', false,
+        'status', 400,
+        'error', 'Producto o cantidad invalida',
+        'message', 'Producto o cantidad invalida'
+      );
+      EXIT logica_venta;
+    END IF;
 
-    v_stock_resultado := NULL;
-    CALL actualizar_stock(v_detalle.id_producto, -v_detalle.cantidad, 'ADD', v_stock_resultado);
+    FOR v_detalle IN
+      SELECT id_producto, cantidad
+      FROM tmp_detalles_venta
+      ORDER BY id_producto
+    LOOP
+      SELECT id_producto, nombre, stock, precio_unitario
+      INTO v_producto
+      FROM producto
+      WHERE id_producto = v_detalle.id_producto
+      FOR UPDATE;
 
-    INSERT INTO detalle_venta (
-      id_venta,
-      id_producto,
-      cantidad,
-      precio_unitario,
-      subtotal
-    )
-    VALUES (
-      v_venta.id_venta,
-      v_detalle.id_producto,
-      v_detalle.cantidad,
-      v_producto.precio_unitario,
-      v_producto.precio_unitario * v_detalle.cantidad
-    );
+      IF NOT FOUND THEN
+        resultado := jsonb_build_object(
+          'ok', false,
+          'status', 404,
+          'error', 'Producto inexistente',
+          'message', 'Producto inexistente',
+          'id_producto', v_detalle.id_producto
+        );
+        EXIT logica_venta;
+      END IF;
 
-    v_detalles_resultado := v_detalles_resultado || jsonb_build_array(
-      jsonb_build_object(
-        'id_producto', v_detalle.id_producto,
-        'cantidad', v_detalle.cantidad,
-        'precio_unitario', v_producto.precio_unitario,
-        'subtotal', v_producto.precio_unitario * v_detalle.cantidad
+      IF v_detalle.cantidad > v_producto.stock THEN
+        resultado := jsonb_build_object(
+          'ok', false,
+          'status', 409,
+          'error', 'Stock insuficiente para completar la venta',
+          'message', 'Stock insuficiente para completar la venta',
+          'producto', v_producto.nombre,
+          'stock_disponible', v_producto.stock,
+          'cantidad_solicitada', v_detalle.cantidad
+        );
+        EXIT logica_venta;
+      END IF;
+
+      v_total := v_total + (v_producto.precio_unitario * v_detalle.cantidad);
+    END LOOP;
+
+    INSERT INTO venta (fecha, total, estado, id_cliente, id_empleado)
+    VALUES (p_fecha, v_total, COALESCE(NULLIF(p_estado, ''), 'COMPLETADA'), p_id_cliente, p_id_empleado)
+    RETURNING *
+    INTO v_venta;
+
+    FOR v_detalle IN
+      SELECT id_producto, cantidad
+      FROM tmp_detalles_venta
+      ORDER BY id_producto
+    LOOP
+      SELECT id_producto, nombre, stock, precio_unitario
+      INTO v_producto
+      FROM producto
+      WHERE id_producto = v_detalle.id_producto
+      FOR UPDATE;
+
+      UPDATE producto
+      SET stock = stock - v_detalle.cantidad
+      WHERE id_producto = v_detalle.id_producto;
+
+      INSERT INTO detalle_venta (
+        id_venta,
+        id_producto,
+        cantidad,
+        precio_unitario,
+        subtotal
       )
-    );
-  END LOOP;
+      VALUES (
+        v_venta.id_venta,
+        v_detalle.id_producto,
+        v_detalle.cantidad,
+        v_producto.precio_unitario,
+        v_producto.precio_unitario * v_detalle.cantidad
+      );
 
-  resultado := to_jsonb(v_venta)
-    || jsonb_build_object(
-      'detalles', v_detalles_resultado,
-      'message', 'Venta registrada correctamente'
-    );
+      v_detalles_resultado := v_detalles_resultado || jsonb_build_array(
+        jsonb_build_object(
+          'id_producto', v_detalle.id_producto,
+          'cantidad', v_detalle.cantidad,
+          'precio_unitario', v_producto.precio_unitario,
+          'subtotal', v_producto.precio_unitario * v_detalle.cantidad
+        )
+      );
+    END LOOP;
+
+    resultado := to_jsonb(v_venta)
+      || jsonb_build_object(
+        'ok', true,
+        'status', 201,
+        'detalles', v_detalles_resultado,
+        'message', 'Venta registrada correctamente'
+      );
+    v_debe_commit := true;
+  EXCEPTION
+    WHEN OTHERS THEN
+      resultado := jsonb_build_object(
+        'ok', false,
+        'status', 500,
+        'error', 'Error de base de datos al registrar la venta',
+        'message', SQLERRM
+      );
+      v_debe_commit := false;
+  END logica_venta;
+
+  IF v_debe_commit THEN
+    COMMIT;
+  ELSE
+    ROLLBACK;
+  END IF;
 END;
 $$;
 
