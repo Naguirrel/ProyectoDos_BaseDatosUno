@@ -39,7 +39,7 @@ Todos usan password `secret`.
 
 | Usuario | Rol |
 |---|---|
-| `proy2` | `administrador` |
+| `proy3` | `administrador` |
 | `admin_test` | `administrador` |
 | `gerente_test` | `gerente` |
 | `vendedor_test` | `vendedor` |
@@ -105,13 +105,13 @@ docker compose ps
 | Contenedores | `brickland_db`, `brickland_api`, `brickland_frontend` arriba |
 | Scripts initdb | `01-brickland`, `02-auth-test-users`, `03-stored-procedures`, `04-security-roles` ejecutados |
 | Roles PostgreSQL | 5 roles presentes |
-| Usuarios de prueba | 6 usuarios presentes, incluyendo `proy2` |
+| Usuarios de prueba | 6 usuarios presentes, incluyendo `proy3` |
 | Stored procedures | 5 procedures presentes |
 | Prisma | `npx prisma validate` correcto |
 | Prisma Client | `npx prisma generate` correcto |
 | Sintaxis backend | `node --check` correcto en app, controllers y middleware revisados |
 | Frontend `/` | `200`, sirve login |
-| Login `proy2 / secret` | Correcto, rol `administrador` |
+| Login `proy3 / secret` | Correcto, rol `administrador` |
 | `GET /productos` con admin | `200` |
 | `GET /reportes/ingresos` con admin | `200` |
 | `GET /reportes/ingresos` con vendedor | `403 Forbidden` |

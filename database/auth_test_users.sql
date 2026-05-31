@@ -7,7 +7,7 @@
 -- prueba sin duplicarlos y mantiene activo el login principal.
 
 INSERT INTO usuario (username, password_hash, rol, activo, id_empleado) VALUES
-('proy2','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','administrador',TRUE,NULL),
+('proy3','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','administrador',TRUE,NULL),
 ('admin_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','administrador',TRUE,NULL),
 ('gerente_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','gerente',TRUE,NULL),
 ('vendedor_test','2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b','vendedor',TRUE,NULL),

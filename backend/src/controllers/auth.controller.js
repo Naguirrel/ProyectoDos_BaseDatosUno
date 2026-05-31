@@ -6,7 +6,7 @@ const COOKIE_NAME = 'brickland_session';
 const DEFAULT_PASSWORD = 'secret';
 
 const DEFAULT_USERS = [
-  { username: 'proy2', password: DEFAULT_PASSWORD, rol: 'administrador' },
+  { username: 'proy3', password: DEFAULT_PASSWORD, rol: 'administrador' },
   { username: 'admin_test', password: DEFAULT_PASSWORD, rol: 'administrador' },
   { username: 'gerente_test', password: DEFAULT_PASSWORD, rol: 'gerente' },
   { username: 'vendedor_test', password: DEFAULT_PASSWORD, rol: 'vendedor' },

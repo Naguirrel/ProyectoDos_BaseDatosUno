@@ -132,7 +132,7 @@ Variables principales:
 Credencial principal:
 
 ```txt
-Usuario: proy2
+Usuario: proy3
 Password: secret
 Rol: administrador
 ```
@@ -141,6 +141,7 @@ Usuarios de prueba de Proyecto 3:
 
 | Usuario | Password | Rol |
 |---|---|---|
+| `proy3` | `secret` | administrador |
 | `admin_test` | `secret` | administrador |
 | `gerente_test` | `secret` | gerente |
 | `vendedor_test` | `secret` | vendedor |

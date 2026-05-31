@@ -86,6 +86,7 @@ database/auth_test_users.sql
 
 | Usuario | Password | Rol de aplicacion |
 |---|---|---|
+| `proy3` | `secret` | `administrador` |
 | `admin_test` | `secret` | `administrador` |
 | `gerente_test` | `secret` | `gerente` |
 | `vendedor_test` | `secret` | `vendedor` |
@@ -116,7 +117,7 @@ docker compose exec db psql -U proy2 -d brickland -c "SELECT rolname FROM pg_rol
 Ver usuarios de prueba:
 
 ```bash
-docker compose exec db psql -U proy2 -d brickland -c "SELECT username, rol, activo FROM usuario WHERE username IN ('admin_test','gerente_test','vendedor_test','bodeguero_test','analista_test') ORDER BY username;"
+docker compose exec db psql -U proy2 -d brickland -c "SELECT username, rol, activo FROM usuario WHERE username IN ('proy3','admin_test','gerente_test','vendedor_test','bodeguero_test','analista_test') ORDER BY username;"
 ```
 
 Reejecutar script manualmente si fuera necesario:

@@ -39,7 +39,7 @@ Este checklist resume el estado actual del proyecto despues de la auditoria tecn
 - [x] Permisos amplios revocados con `REVOKE`.
 - [x] Matriz de permisos documentada en `docs/SEGURIDAD_ROLES_DB.md`.
 - [x] Usuarios de prueba por rol creados en la tabla `usuario`.
-- [x] Login mantiene compatibilidad con `proy2 / secret`.
+- [x] Login mantiene compatibilidad con `proy3 / secret`.
 - [x] El rol se guarda en sesion y se expone al frontend.
 - [x] Middleware reutilizable de autorizacion implementado.
 - [x] Rutas devuelven `403 Forbidden` cuando el rol no tiene permiso.
@@ -91,7 +91,7 @@ Este checklist resume el estado actual del proyecto despues de la auditoria tecn
 - [x] `docker compose down -v`
 - [x] `docker compose up -d --build`
 - [x] Contenedores `brickland_db`, `brickland_api` y `brickland_frontend` levantan correctamente.
-- [x] Login principal `proy2 / secret`.
+- [x] Login principal `proy3 / secret`.
 - [x] Roles PostgreSQL presentes en la base.
 - [x] Usuarios de prueba presentes en la base.
 - [x] Stored procedures presentes en la base.
