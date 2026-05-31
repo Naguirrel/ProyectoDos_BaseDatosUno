@@ -60,7 +60,10 @@ let proveedores = [];
 let usuarios = [];
 let ventaDetalleCounter = 0;
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await waitForAuthorizedUi();
+  if (!session) return;
+
   setActiveNav();
 
   if (document.body.dataset.page === "dashboard") initDashboard();
@@ -73,11 +76,51 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.body.dataset.entity) initEntityPage(document.body.dataset.entity);
 });
 
+async function waitForAuthorizedUi() {
+  if (document.body.dataset.public === "true") return null;
+
+  try {
+    const session = window.BrickLandAuth
+      ? await window.BrickLandAuth.getCurrentSession()
+      : await BrickLandAPI.getSession();
+
+    if (!session.authenticated) return null;
+
+    if (window.BrickLandAuth && !window.BrickLandAuth.canAccessModule(session.user.rol, getPageModule())) {
+      return null;
+    }
+
+    return session;
+  } catch (error) {
+    return null;
+  }
+}
+
 function setActiveNav() {
   const current = document.body.dataset.nav;
   document.querySelectorAll(".nav-link").forEach((link) => {
     link.classList.toggle("active", link.dataset.nav === current);
   });
+}
+
+function getPageModule() {
+  if (window.BrickLandAuth) return window.BrickLandAuth.getCurrentModule();
+  return document.body.dataset.page || document.body.dataset.nav || "dashboard";
+}
+
+function canWritePage(moduleName = getPageModule()) {
+  if (!window.BrickLandAuth) return true;
+  return window.BrickLandAuth.canWriteModule(window.BrickLandAuth.getCurrentRole(), moduleName);
+}
+
+function setFormVisibility(formId, moduleName = getPageModule()) {
+  const form = document.getElementById(formId);
+  if (!form) return canWritePage(moduleName);
+
+  const canWrite = canWritePage(moduleName);
+  const card = form.closest(".card");
+  if (card) card.classList.toggle("hidden", !canWrite);
+  return canWrite;
 }
 
 async function initDashboard() {
@@ -109,6 +152,7 @@ async function initDashboard() {
 }
 
 function initProductos() {
+  setFormVisibility("productoForm", "productos");
   document.getElementById("productoForm").addEventListener("submit", saveProducto);
   document.getElementById("btnCancelar").addEventListener("click", resetProductoForm);
   document.getElementById("btnRecargar").addEventListener("click", loadProductos);
@@ -116,6 +160,7 @@ function initProductos() {
 }
 
 function initVentas() {
+  setFormVisibility("ventaForm", "ventas");
   document.getElementById("ventaForm").addEventListener("submit", saveVenta);
   document.getElementById("btnCancelarVenta").addEventListener("click", resetVentaForm);
   document.getElementById("btnRecargar").addEventListener("click", loadVentas);
@@ -127,6 +172,7 @@ function initVentas() {
 }
 
 function initClientes() {
+  setFormVisibility("clienteForm", "clientes");
   document.getElementById("clienteForm").addEventListener("submit", saveCliente);
   document.getElementById("btnCancelarCliente").addEventListener("click", resetClienteForm);
   document.getElementById("btnRecargar").addEventListener("click", loadClientes);
@@ -134,6 +180,7 @@ function initClientes() {
 }
 
 function initEmpleados() {
+  setFormVisibility("empleadoForm", "empleados");
   document.getElementById("empleadoForm").addEventListener("submit", saveEmpleado);
   document.getElementById("btnCancelarEmpleado").addEventListener("click", resetEmpleadoForm);
   document.getElementById("btnRecargar").addEventListener("click", loadEmpleados);
@@ -141,6 +188,7 @@ function initEmpleados() {
 }
 
 function initProveedores() {
+  setFormVisibility("proveedorForm", "proveedores");
   document.getElementById("proveedorForm").addEventListener("submit", saveProveedor);
   document.getElementById("btnCancelarProveedor").addEventListener("click", resetProveedorForm);
   document.getElementById("btnRecargar").addEventListener("click", loadProveedores);
@@ -148,6 +196,7 @@ function initProveedores() {
 }
 
 function initUsuarios() {
+  setFormVisibility("usuarioForm", "usuarios");
   document.getElementById("usuarioForm").addEventListener("submit", saveUsuario);
   document.getElementById("btnCancelarUsuario").addEventListener("click", resetUsuarioForm);
   document.getElementById("btnRecargar").addEventListener("click", loadUsuarios);
@@ -157,14 +206,16 @@ function initUsuarios() {
 async function loadProductos() {
   const body = document.getElementById("productosBody");
   const counter = document.getElementById("contadorProductos");
-  body.innerHTML = `<tr><td colspan="6" class="empty">Cargando...</td></tr>`;
+  const canManage = canWritePage("productos");
+  setProductosTableHeader(canManage);
+  body.innerHTML = `<tr><td colspan="${canManage ? 6 : 5}" class="empty">Cargando...</td></tr>`;
 
   try {
     productos = await BrickLandAPI.getProductos();
     counter.textContent = `${productos.length} registros`;
 
     if (!productos.length) {
-      body.innerHTML = `<tr><td colspan="6" class="empty">No hay productos registrados</td></tr>`;
+      body.innerHTML = `<tr><td colspan="${canManage ? 6 : 5}" class="empty">No hay productos registrados</td></tr>`;
       return;
     }
 
@@ -175,18 +226,34 @@ async function loadProductos() {
         <td><span class="badge">${escapeHtml(producto.stock)}</span></td>
         <td>${escapeHtml(producto.categoria)}</td>
         <td>${escapeHtml(producto.proveedor)}</td>
-        <td>
-          <div class="row-actions">
-            <button class="btn secondary" type="button" onclick="editProducto(${producto.id_producto})">Editar</button>
-            <button class="btn danger" type="button" onclick="deleteProducto(${producto.id_producto})">Eliminar</button>
-          </div>
-        </td>
+        ${canManage ? `
+          <td>
+            <div class="row-actions">
+              <button class="btn secondary" type="button" onclick="editProducto(${producto.id_producto})">Editar</button>
+              <button class="btn danger" type="button" onclick="deleteProducto(${producto.id_producto})">Eliminar</button>
+            </div>
+          </td>
+        ` : ""}
       </tr>
     `).join("");
   } catch (error) {
-    body.innerHTML = `<tr><td colspan="6" class="empty">Error al cargar datos</td></tr>`;
+    body.innerHTML = `<tr><td colspan="${canManage ? 6 : 5}" class="empty">Error al cargar datos</td></tr>`;
     showAlert(error.message || "Error al cargar datos", "error");
   }
+}
+
+function setProductosTableHeader(canManage) {
+  const header = document.querySelector("#productosBody")?.closest("table")?.querySelector("thead tr");
+  if (!header) return;
+
+  header.innerHTML = `
+    <th>Nombre</th>
+    <th>Precio</th>
+    <th>Stock</th>
+    <th>Categoria</th>
+    <th>Proveedor</th>
+    ${canManage ? "<th>Acciones</th>" : ""}
+  `;
 }
 
 async function saveProducto(event) {
@@ -884,6 +951,10 @@ function resetEmpleadoForm() {
 function renderTableWithActions(rows, columns, editFn, deleteFn, idKey) {
   if (!rows || rows.length === 0) {
     return `<p class="empty">No hay datos disponibles</p>`;
+  }
+
+  if (!canWritePage()) {
+    return renderTable(rows, columns);
   }
 
   const headers = columns.map((column) => `<th>${column.label}</th>`).join("");
