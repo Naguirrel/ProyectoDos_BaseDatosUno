@@ -1,14 +1,24 @@
 const pool = require('../db/connection');
+const prisma = require('../prisma/client');
 
 const getClientes = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id_cliente, nombre, apellido, telefono, email, nit, fecha_registro
-      FROM cliente
-      ORDER BY id_cliente;
-    `);
+    const clientes = await prisma.cliente.findMany({
+      select: {
+        id_cliente: true,
+        nombre: true,
+        apellido: true,
+        telefono: true,
+        email: true,
+        nit: true,
+        fecha_registro: true
+      },
+      orderBy: {
+        id_cliente: 'asc'
+      }
+    });
 
-    res.json(result.rows);
+    res.json(clientes);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener clientes' });
@@ -48,15 +58,23 @@ const createCliente = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    const result = await pool.query(
-      `INSERT INTO cliente (nombre, apellido, telefono, email, nit, fecha_registro)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [nombre, apellido || null, telefono || null, email || null, nit || null, fecha_registro]
-    );
+    const cliente = await prisma.cliente.create({
+      data: {
+        nombre,
+        apellido: apellido || null,
+        telefono: telefono || null,
+        email: email || null,
+        nit: nit || null,
+        fecha_registro: new Date(fecha_registro)
+      }
+    });
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(cliente);
   } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'Ya existe un cliente con ese email o NIT' });
+    }
+
     console.error(error);
     res.status(500).json({ error: 'Error al crear cliente' });
   }
@@ -67,69 +85,117 @@ const updateCliente = async (req, res) => {
     const { id } = req.params;
     const { nombre, apellido, telefono, email, nit, fecha_registro } = req.body;
 
-    const result = await pool.query(
-      `UPDATE cliente
-       SET nombre = $1, apellido = $2, telefono = $3, email = $4, nit = $5, fecha_registro = $6
-       WHERE id_cliente = $7
-       RETURNING *`,
-      [nombre, apellido || null, telefono || null, email || null, nit || null, fecha_registro, id]
-    );
+    const cliente = await prisma.cliente.update({
+      where: {
+        id_cliente: Number(id)
+      },
+      data: {
+        nombre,
+        apellido: apellido || null,
+        telefono: telefono || null,
+        email: email || null,
+        nit: nit || null,
+        fecha_registro: new Date(fecha_registro)
+      }
+    });
 
-    if (result.rowCount === 0) {
+    res.json(cliente);
+  } catch (error) {
+    if (error.code === 'P2025') {
       return res.status(404).json({ error: 'Cliente no encontrado' });
     }
 
-    res.json(result.rows[0]);
-  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'Ya existe un cliente con ese email o NIT' });
+    }
+
     console.error(error);
     res.status(500).json({ error: 'Error al actualizar cliente' });
   }
 };
 
 const deleteCliente = async (req, res) => {
-  const client = await pool.connect();
-
   try {
     const { id } = req.params;
+    const idCliente = Number(id);
 
-    await client.query('BEGIN');
-    await client.query(`
-      DELETE FROM detalle_venta
-      WHERE id_venta IN (SELECT id_venta FROM venta WHERE id_cliente = $1)
-    `, [id]);
-    await client.query(`DELETE FROM venta WHERE id_cliente = $1`, [id]);
+    const cliente = await prisma.cliente.findUnique({
+      where: {
+        id_cliente: idCliente
+      },
+      select: {
+        id_cliente: true
+      }
+    });
 
-    const result = await client.query(
-      `DELETE FROM cliente WHERE id_cliente = $1 RETURNING id_cliente`,
-      [id]
-    );
-
-    if (result.rowCount === 0) {
-      await client.query('ROLLBACK');
+    if (!cliente) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
     }
 
-    await client.query('COMMIT');
+    await prisma.$transaction(async (tx) => {
+      const ventas = await tx.venta.findMany({
+        where: {
+          id_cliente: idCliente
+        },
+        select: {
+          id_venta: true
+        }
+      });
+
+      const ventaIds = ventas.map((venta) => venta.id_venta);
+
+      if (ventaIds.length > 0) {
+        await tx.detalle_venta.deleteMany({
+          where: {
+            id_venta: {
+              in: ventaIds
+            }
+          }
+        });
+      }
+
+      await tx.venta.deleteMany({
+        where: {
+          id_cliente: idCliente
+        }
+      });
+
+      await tx.cliente.delete({
+        where: {
+          id_cliente: idCliente
+        }
+      });
+    });
+
     res.json({ message: 'Cliente eliminado correctamente' });
   } catch (error) {
-    await client.query('ROLLBACK');
     console.error(error);
     res.status(500).json({ error: 'Error al eliminar cliente' });
-  } finally {
-    client.release();
   }
 };
 
 const getEmpleados = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id_empleado, nombre, apellido, cargo, telefono, email, fecha_contratacion, activo
-      FROM empleado
-      WHERE activo = TRUE
-      ORDER BY id_empleado;
-    `);
+    const empleados = await prisma.empleado.findMany({
+      where: {
+        activo: true
+      },
+      select: {
+        id_empleado: true,
+        nombre: true,
+        apellido: true,
+        cargo: true,
+        telefono: true,
+        email: true,
+        fecha_contratacion: true,
+        activo: true
+      },
+      orderBy: {
+        id_empleado: 'asc'
+      }
+    });
 
-    res.json(result.rows);
+    res.json(empleados);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener empleados' });
@@ -329,15 +395,24 @@ const createEmpleado = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    const result = await pool.query(
-      `INSERT INTO empleado (nombre, apellido, cargo, telefono, email, fecha_contratacion, activo)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [nombre, apellido, cargo || null, telefono || null, email || null, fecha_contratacion, activo !== false]
-    );
+    const empleado = await prisma.empleado.create({
+      data: {
+        nombre,
+        apellido,
+        cargo: cargo || null,
+        telefono: telefono || null,
+        email: email || null,
+        fecha_contratacion: new Date(fecha_contratacion),
+        activo: activo !== false
+      }
+    });
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(empleado);
   } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'Ya existe un empleado con ese email' });
+    }
+
     console.error(error);
     res.status(500).json({ error: 'Error al crear empleado' });
   }
@@ -348,20 +423,31 @@ const updateEmpleado = async (req, res) => {
     const { id } = req.params;
     const { nombre, apellido, cargo, telefono, email, fecha_contratacion, activo } = req.body;
 
-    const result = await pool.query(
-      `UPDATE empleado
-       SET nombre = $1, apellido = $2, cargo = $3, telefono = $4, email = $5, fecha_contratacion = $6, activo = $7
-       WHERE id_empleado = $8
-       RETURNING *`,
-      [nombre, apellido, cargo || null, telefono || null, email || null, fecha_contratacion, activo !== false, id]
-    );
+    const empleado = await prisma.empleado.update({
+      where: {
+        id_empleado: Number(id)
+      },
+      data: {
+        nombre,
+        apellido,
+        cargo: cargo || null,
+        telefono: telefono || null,
+        email: email || null,
+        fecha_contratacion: new Date(fecha_contratacion),
+        activo: activo !== false
+      }
+    });
 
-    if (result.rowCount === 0) {
+    res.json(empleado);
+  } catch (error) {
+    if (error.code === 'P2025') {
       return res.status(404).json({ error: 'Empleado no encontrado' });
     }
 
-    res.json(result.rows[0]);
-  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'Ya existe un empleado con ese email' });
+    }
+
     console.error(error);
     res.status(500).json({ error: 'Error al actualizar empleado' });
   }
@@ -370,33 +456,56 @@ const updateEmpleado = async (req, res) => {
 const deleteEmpleado = async (req, res) => {
   try {
     const { id } = req.params;
+    const idEmpleado = Number(id);
 
-    await pool.query(`DELETE FROM usuario WHERE id_empleado = $1`, [id]);
+    const empleado = await prisma.empleado.findUnique({
+      where: {
+        id_empleado: idEmpleado
+      },
+      select: {
+        id_empleado: true
+      }
+    });
+
+    if (!empleado) {
+      return res.status(404).json({ error: 'Empleado no encontrado' });
+    }
 
     try {
-      const result = await pool.query(
-        `DELETE FROM empleado WHERE id_empleado = $1 RETURNING id_empleado`,
-        [id]
-      );
-
-      if (result.rowCount === 0) {
-        return res.status(404).json({ error: 'Empleado no encontrado' });
-      }
+      await prisma.$transaction([
+        prisma.usuario.deleteMany({
+          where: {
+            id_empleado: idEmpleado
+          }
+        }),
+        prisma.empleado.delete({
+          where: {
+            id_empleado: idEmpleado
+          }
+        })
+      ]);
 
       return res.json({ message: 'Empleado eliminado correctamente' });
     } catch (error) {
-      if (error.code !== '23503') {
+      if (error.code !== 'P2003') {
         throw error;
       }
 
-      const result = await pool.query(
-        `UPDATE empleado SET activo = FALSE WHERE id_empleado = $1 RETURNING id_empleado`,
-        [id]
-      );
-
-      if (result.rowCount === 0) {
-        return res.status(404).json({ error: 'Empleado no encontrado' });
-      }
+      await prisma.$transaction([
+        prisma.usuario.deleteMany({
+          where: {
+            id_empleado: idEmpleado
+          }
+        }),
+        prisma.empleado.update({
+          where: {
+            id_empleado: idEmpleado
+          },
+          data: {
+            activo: false
+          }
+        })
+      ]);
 
       return res.json({ message: 'Empleado desactivado por tener registros asociados' });
     }
