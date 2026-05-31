@@ -1,4 +1,5 @@
 const prisma = require('../prisma/client');
+const pool = require('../db/connection');
 
 function formatProductoRow(producto) {
   return {
@@ -47,17 +48,20 @@ const createProducto = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    const producto = await prisma.producto.create({
-      data: {
+    const result = await pool.query(
+      `CALL crear_producto($1, $2, $3, $4, $5, $6, $7, NULL)`,
+      [
         nombre,
-        descripcion: descripcion || null,
+        descripcion || null,
         precio_unitario,
-        stock: Number(stock),
-        stock_minimo: Number(stock_minimo),
-        id_categoria: Number(id_categoria),
-        id_proveedor: Number(id_proveedor)
-      }
-    });
+        Number(stock || 0),
+        Number(stock_minimo || 0),
+        Number(id_categoria),
+        Number(id_proveedor)
+      ]
+    );
+
+    const producto = result.rows[0].resultado;
 
     res.status(201).json(producto);
   } catch (error) {
@@ -67,29 +71,45 @@ const createProducto = async (req, res) => {
 };
 
 const updateProducto = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const { id } = req.params;
     const { nombre, precio_unitario, stock } = req.body;
+    const idProducto = Number(id);
 
-    const producto = await prisma.producto.update({
-      where: {
-        id_producto: Number(id)
-      },
-      data: {
-        nombre,
-        precio_unitario,
-        stock: Number(stock)
-      }
-    });
+    await client.query('BEGIN');
 
-    res.json(producto);
-  } catch (error) {
-    if (error.code === 'P2025') {
+    const updated = await client.query(
+      `UPDATE producto
+       SET nombre = $1, precio_unitario = $2
+       WHERE id_producto = $3
+       RETURNING id_producto`,
+      [nombre, precio_unitario, idProducto]
+    );
+
+    if (updated.rowCount === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
 
+    const result = await client.query(
+      `CALL actualizar_stock($1, $2, 'SET', NULL)`,
+      [idProducto, Number(stock)]
+    );
+
+    await client.query('COMMIT');
+
+    const producto = result.rows[0].resultado;
+
+    res.json(producto);
+  } catch (error) {
+    await client.query('ROLLBACK');
+
     console.error(error);
     res.status(500).json({ error: 'Error al actualizar producto' });
+  } finally {
+    client.release();
   }
 };
 

@@ -58,20 +58,23 @@ const createCliente = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    const cliente = await prisma.cliente.create({
-      data: {
+    const result = await pool.query(
+      `CALL registrar_cliente($1, $2, $3, $4, $5, $6, NULL)`,
+      [
         nombre,
-        apellido: apellido || null,
-        telefono: telefono || null,
-        email: email || null,
-        nit: nit || null,
-        fecha_registro: new Date(fecha_registro)
-      }
-    });
+        apellido || null,
+        telefono || null,
+        email || null,
+        nit || null,
+        fecha_registro
+      ]
+    );
+
+    const cliente = result.rows[0].resultado;
 
     res.status(201).json(cliente);
   } catch (error) {
-    if (error.code === 'P2002') {
+    if (error.message && error.message.includes('Ya existe un cliente')) {
       return res.status(400).json({ error: 'Ya existe un cliente con ese email o NIT' });
     }
 
@@ -203,10 +206,6 @@ const getEmpleados = async (req, res) => {
 };
 
 const createVenta = async (req, res) => {
-  const client = await pool.connect();
-  let transactionStarted = false;
-  let transactionCommitted = false;
-
   try {
     const { fecha, estado, id_cliente, id_empleado, detalles } = req.body;
 
@@ -214,133 +213,41 @@ const createVenta = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    await client.query('BEGIN');
-    transactionStarted = true;
-
-    const clienteResult = await client.query(
-      `SELECT id_cliente FROM cliente WHERE id_cliente = $1`,
-      [id_cliente]
+    const result = await pool.query(
+      `CALL registrar_venta($1, $2, $3, $4, $5::jsonb, NULL)`,
+      [
+        fecha,
+        estado || 'COMPLETADA',
+        Number(id_cliente),
+        Number(id_empleado),
+        JSON.stringify(detalles)
+      ]
     );
 
-    if (clienteResult.rowCount === 0) {
-      await client.query('ROLLBACK');
+    res.status(201).json(result.rows[0].resultado);
+  } catch (error) {
+    if (error.message && error.message.includes('Stock insuficiente')) {
+      return res.status(409).json({ error: 'Stock insuficiente para completar la venta' });
+    }
+
+    if (error.message && error.message.includes('Cliente inexistente')) {
       return res.status(404).json({ error: 'Cliente inexistente' });
     }
 
-    const empleadoResult = await client.query(
-      `SELECT id_empleado FROM empleado WHERE id_empleado = $1 AND activo = TRUE`,
-      [id_empleado]
-    );
-
-    if (empleadoResult.rowCount === 0) {
-      await client.query('ROLLBACK');
+    if (error.message && error.message.includes('Empleado inexistente')) {
       return res.status(404).json({ error: 'Empleado inexistente o inactivo' });
     }
 
-    const detallesAgrupados = detalles.reduce((acc, detalle) => {
-      const idProducto = Number(detalle.id_producto);
-      const cantidad = Number(detalle.cantidad);
+    if (error.message && error.message.includes('Producto inexistente')) {
+      return res.status(404).json({ error: 'Producto inexistente' });
+    }
 
-      if (!idProducto || !cantidad || cantidad <= 0) {
-        return acc;
-      }
-
-      acc.set(idProducto, (acc.get(idProducto) || 0) + cantidad);
-      return acc;
-    }, new Map());
-
-    if (detallesAgrupados.size === 0) {
-      await client.query('ROLLBACK');
+    if (error.message && error.message.includes('Producto o cantidad invalida')) {
       return res.status(400).json({ error: 'Producto o cantidad invalida' });
     }
 
-    const productosVenta = [];
-    let total = 0;
-
-    for (const [idProducto, cantidad] of detallesAgrupados) {
-      const productoResult = await client.query(
-        `SELECT id_producto, nombre, stock, precio_unitario
-         FROM producto
-         WHERE id_producto = $1
-         FOR UPDATE`,
-        [idProducto]
-      );
-
-      if (productoResult.rowCount === 0) {
-        await client.query('ROLLBACK');
-        return res.status(404).json({ error: 'Producto inexistente' });
-      }
-
-      const producto = productoResult.rows[0];
-
-      if (cantidad > Number(producto.stock)) {
-        await client.query('ROLLBACK');
-        return res.status(409).json({
-          error: 'Stock insuficiente para completar la venta',
-          producto: producto.nombre,
-          stock_disponible: producto.stock,
-          cantidad_solicitada: cantidad
-        });
-      }
-
-      const precioUnitario = Number(producto.precio_unitario);
-      const subtotal = precioUnitario * cantidad;
-      total += subtotal;
-
-      productosVenta.push({
-        id_producto: idProducto,
-        cantidad,
-        precio_unitario: precioUnitario,
-        subtotal
-      });
-    }
-
-    const ventaResult = await client.query(
-      `INSERT INTO venta (fecha, total, estado, id_cliente, id_empleado)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [fecha, total, estado || 'COMPLETADA', id_cliente, id_empleado]
-    );
-
-    const venta = ventaResult.rows[0];
-
-    for (const producto of productosVenta) {
-      await client.query(
-        `UPDATE producto
-         SET stock = stock - $1
-         WHERE id_producto = $2`,
-        [producto.cantidad, producto.id_producto]
-      );
-
-      await client.query(
-        `INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          venta.id_venta,
-          producto.id_producto,
-          producto.cantidad,
-          producto.precio_unitario,
-          producto.subtotal
-        ]
-      );
-    }
-
-    await client.query('COMMIT');
-    transactionCommitted = true;
-
-    res.status(201).json({
-      ...venta,
-      detalles: productosVenta,
-      message: 'Venta registrada correctamente'
-    });
-  } catch (error) {
-    if (transactionStarted && !transactionCommitted) {
-      await client.query('ROLLBACK');
-    }
     console.error(error);
     res.status(500).json({ error: 'Error de base de datos al registrar la venta' });
-  } finally {
-    client.release();
   }
 };
 

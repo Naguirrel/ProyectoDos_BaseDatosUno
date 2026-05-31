@@ -124,9 +124,9 @@ const productosMasVendidos = async (req, res) => {
 
 const ingresosPorFecha = async (req, res) => {
     try {
-      const result = await pool.query(SQL_QUERIES.ingresosPorFecha);
+      const result = await pool.query(`CALL generar_resumen_ventas(NULL)`);
   
-      res.json(result.rows);
+      res.json(result.rows[0].resultado);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Error en reporte ingresos' });
