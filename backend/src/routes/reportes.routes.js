@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { requireRoles, roles } = require('../middleware/roles.middleware');
 
 const {
   ingresosPorFecha,
@@ -14,7 +15,12 @@ const {
   vistaProductos
 } = require('../controllers/reportes.controller');
 
-// rutas
+router.use(requireRoles(
+  roles.ADMINISTRADOR,
+  roles.GERENTE,
+  roles.ANALISTA
+));
+
 router.get('/ingresos', ingresosPorFecha);
 router.get('/productos-caros', productosCaros);
 router.get('/ventas-cte', ventasCTE);
@@ -31,5 +37,4 @@ router.get('/', (req, res) => {
     res.send('Reportes funcionando');
   });
 
-// exportar
 module.exports = router;

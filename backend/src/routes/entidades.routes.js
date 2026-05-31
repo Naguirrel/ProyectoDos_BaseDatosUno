@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { requireRoles, roles } = require('../middleware/roles.middleware');
 
 const {
   getClientes,
@@ -20,21 +21,82 @@ const {
   deleteProveedor
 } = require('../controllers/entidades.controller');
 
-router.get('/clientes', getClientes);
-router.post('/clientes', createCliente);
-router.put('/clientes/:id', updateCliente);
-router.delete('/clientes/:id', deleteCliente);
-router.get('/ventas', getVentas);
-router.post('/ventas', createVenta);
-router.put('/ventas/:id', updateVenta);
-router.delete('/ventas/:id', deleteVenta);
-router.get('/empleados', getEmpleados);
-router.post('/empleados', createEmpleado);
-router.put('/empleados/:id', updateEmpleado);
-router.delete('/empleados/:id', deleteEmpleado);
-router.get('/proveedores', getProveedores);
-router.post('/proveedores', createProveedor);
-router.put('/proveedores/:id', updateProveedor);
-router.delete('/proveedores/:id', deleteProveedor);
+router.get('/clientes', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.GERENTE,
+  roles.VENDEDOR
+), getClientes);
+
+router.post('/clientes', requireRoles(
+  roles.ADMINISTRADOR
+), createCliente);
+
+router.put('/clientes/:id', requireRoles(
+  roles.ADMINISTRADOR
+), updateCliente);
+
+router.delete('/clientes/:id', requireRoles(
+  roles.ADMINISTRADOR
+), deleteCliente);
+
+router.get('/ventas', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.GERENTE,
+  roles.VENDEDOR
+), getVentas);
+
+router.post('/ventas', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.VENDEDOR
+), createVenta);
+
+router.put('/ventas/:id', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.VENDEDOR
+), updateVenta);
+
+router.delete('/ventas/:id', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.VENDEDOR
+), deleteVenta);
+
+router.get('/empleados', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.GERENTE,
+  roles.VENDEDOR
+), getEmpleados);
+
+router.post('/empleados', requireRoles(
+  roles.ADMINISTRADOR
+), createEmpleado);
+
+router.put('/empleados/:id', requireRoles(
+  roles.ADMINISTRADOR
+), updateEmpleado);
+
+router.delete('/empleados/:id', requireRoles(
+  roles.ADMINISTRADOR
+), deleteEmpleado);
+
+router.get('/proveedores', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.GERENTE,
+  roles.BODEGUERO
+), getProveedores);
+
+router.post('/proveedores', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.BODEGUERO
+), createProveedor);
+
+router.put('/proveedores/:id', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.BODEGUERO
+), updateProveedor);
+
+router.delete('/proveedores/:id', requireRoles(
+  roles.ADMINISTRADOR,
+  roles.BODEGUERO
+), deleteProveedor);
 
 module.exports = router;
