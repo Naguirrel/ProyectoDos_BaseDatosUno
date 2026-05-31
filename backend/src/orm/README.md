@@ -1,32 +1,38 @@
-# Preparacion ORM - Proyecto 3
+# ORM - Proyecto 3
 
-Esta carpeta queda preparada para introducir una capa de repositorios/modelos alrededor del ORM en Proyecto 3 sin modificar todavia el comportamiento actual del backend.
+Prisma ORM ya esta instalado y operativo en el backend:
+
+```txt
+backend/prisma/schema.prisma
+backend/src/prisma/client.js
+```
+
+Esta carpeta queda como espacio tecnico para una posible capa futura de repositorios, migraciones o servicios alrededor de Prisma. No se importa automaticamente desde la aplicacion.
 
 Estado actual:
 
-- La aplicacion sigue usando `pg` directamente desde `backend/src/db/connection.js`.
-- Prisma ORM ya esta instalado y configurado en `backend/prisma/schema.prisma`.
 - Prisma Client ya fue generado.
-- No hay modelos Prisma conectados a controladores actuales.
-- No hay migraciones ORM activas.
-- No hay sincronizacion automatica de esquema.
-- No hay cambios en rutas, controladores ni autenticacion.
+- Productos, Clientes y Empleados usan Prisma en sus CRUDs.
+- Ventas usan stored procedure por atomicidad de negocio.
+- Reportes se mantienen con SQL directo para conservar evidencia academica.
+- No hay sincronizacion automatica destructiva del esquema.
+- No se usan migraciones Prisma para crear la base; PostgreSQL se inicializa con scripts SQL versionados.
 
 Estructura propuesta:
 
 ```txt
 orm/
-|-- config/        # Configuracion futura del ORM y conexion por ambiente
-|-- models/        # Modelos futuros: Producto, Cliente, Venta, DetalleVenta, etc.
-|-- repositories/  # Capa futura de acceso a datos para aislar consultas
-|-- migrations/    # Migraciones futuras versionadas
-`-- seeders/       # Datos iniciales futuros, si el ORM elegido los soporta
+|-- config/        # Configuracion adicional si se crea capa ORM propia
+|-- models/        # Documentacion o adaptadores futuros por modelo
+|-- repositories/  # Repositorios futuros para aislar acceso a datos
+|-- migrations/    # Migraciones futuras si se adopta Prisma Migrate
+`-- seeders/       # Semillas futuras si dejan de usarse scripts SQL puros
 ```
 
-Reglas para la siguiente etapa:
+Reglas de mantenimiento:
 
-1. Elegir el ORM antes de agregar dependencias.
+1. No activar sincronizacion automatica destructiva.
 2. Mantener compatibilidad con PostgreSQL.
-3. No activar `sync` automatico contra produccion.
-4. Migrar modulo por modulo para evitar romper endpoints existentes.
-5. Conservar consultas SQL complejas de reportes cuando tengan valor academico.
+3. Migrar modulo por modulo.
+4. Conservar SQL directo en reportes cuando sea evidencia academica.
+5. Mantener el contrato JSON existente del frontend.

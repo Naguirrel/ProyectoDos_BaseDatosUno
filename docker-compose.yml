@@ -11,7 +11,9 @@ services:
     volumes:
       - brickland_pgdata:/var/lib/postgresql/data
       - ./database/brickland_ddl.sql:/docker-entrypoint-initdb.d/01-brickland.sql:ro
-      - ./database/stored_procedures.sql:/docker-entrypoint-initdb.d/02-stored-procedures.sql:ro
+      - ./database/auth_test_users.sql:/docker-entrypoint-initdb.d/02-auth-test-users.sql:ro
+      - ./database/stored_procedures.sql:/docker-entrypoint-initdb.d/03-stored-procedures.sql:ro
+      - ./database/security_roles.sql:/docker-entrypoint-initdb.d/04-security-roles.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U proy2 -d brickland"]
       interval: 5s

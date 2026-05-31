@@ -2,7 +2,7 @@
 
 ## Estado de instalacion
 
-Prisma quedo instalado y operativo en el backend sin reemplazar las consultas actuales.
+Prisma quedo instalado y operativo en el backend. Para Proyecto 3 ya se usa en los CRUDs de Productos, Clientes y Empleados, manteniendo compatibilidad con las rutas y respuestas existentes.
 
 Versiones instaladas:
 
@@ -18,7 +18,7 @@ Se fijo Prisma 6.19 para mantener compatibilidad directa con el backend actual e
 | Archivo | Proposito |
 |---|---|
 | `backend/prisma/schema.prisma` | Esquema Prisma introspectado desde PostgreSQL |
-| `backend/src/prisma/client.js` | Cliente Prisma preparado para uso futuro |
+| `backend/src/prisma/client.js` | Cliente Prisma usado por controladores migrados |
 | `backend/package.json` | Scripts `prisma:pull`, `prisma:generate`, `prisma:validate` |
 | `backend/Dockerfile` | Genera Prisma Client durante el build del contenedor |
 | `.env.example` | `DATABASE_URL` documentada |
@@ -50,7 +50,7 @@ La base contiene la vista:
 vista_productos_detalle
 ```
 
-Prisma no la genero como modelo en esta introspeccion. Los reportes actuales pueden seguir consultandola con SQL directo o, en una etapa posterior, mediante raw queries de Prisma.
+Prisma no la genero como modelo en esta introspeccion. Los reportes actuales siguen consultandola con SQL directo para mantener visible la evidencia academica de VIEW.
 
 ## Advertencias de introspeccion
 
@@ -100,10 +100,21 @@ Validacion dentro del contenedor backend:
 [{"ok":1}]
 ```
 
+## Uso actual de Prisma
+
+| Modulo | Estado |
+|---|---|
+| Productos | CRUD migrado a Prisma; creacion y stock consumen stored procedures donde aplica |
+| Clientes | CRUD migrado a Prisma; creacion consume `registrar_cliente` |
+| Empleados | CRUD migrado a Prisma |
+| Ventas | Conserva stored procedure `registrar_venta` por atomicidad de negocio |
+| Reportes | Conservan SQL directo para evidencia academica |
+| Autenticacion | Conserva SQL directo y sesiones existentes |
+
 ## Restricciones respetadas
 
-- No se reemplazaron consultas actuales.
-- No se modificaron controladores existentes.
-- No se implementaron roles.
-- No se implementaron stored procedures.
-- No se cambio el flujo funcional actual de la aplicacion.
+- No se cambiaron rutas publicas.
+- No se cambio el contrato JSON que consume el frontend.
+- No se reemplazaron reportes SQL.
+- No se rompio autenticacion.
+- No se activo sincronizacion destructiva del esquema.
