@@ -3,6 +3,16 @@ const pool = require('../db/connection');
 
 const sessions = new Map();
 const COOKIE_NAME = 'brickland_session';
+const DEFAULT_PASSWORD = 'secret';
+
+const DEFAULT_USERS = [
+  { username: 'proy3', password: DEFAULT_PASSWORD, rol: 'administrador' },
+  { username: 'admin_test', password: DEFAULT_PASSWORD, rol: 'administrador' },
+  { username: 'gerente_test', password: DEFAULT_PASSWORD, rol: 'gerente' },
+  { username: 'vendedor_test', password: DEFAULT_PASSWORD, rol: 'vendedor' },
+  { username: 'bodeguero_test', password: DEFAULT_PASSWORD, rol: 'bodeguero' },
+  { username: 'analista_test', password: DEFAULT_PASSWORD, rol: 'analista' }
+];
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(String(password)).digest('hex');
@@ -30,18 +40,27 @@ function clearSessionCookie() {
 }
 
 async function ensureDefaultUser() {
-  const result = await pool.query(
-    `SELECT id_usuario FROM usuario WHERE username = $1`,
-    ['proy2']
-  );
+  for (const user of DEFAULT_USERS) {
+    await pool.query(
+      `INSERT INTO usuario (username, password_hash, rol, activo, id_empleado)
+       VALUES ($1, $2, $3, TRUE, NULL)
+       ON CONFLICT (username)
+       DO UPDATE SET
+         password_hash = EXCLUDED.password_hash,
+         rol = EXCLUDED.rol,
+         activo = TRUE`,
+      [user.username, hashPassword(user.password), user.rol]
+    );
+  }
+}
 
-  if (result.rowCount > 0) return;
-
-  await pool.query(
-    `INSERT INTO usuario (username, password_hash, rol, activo, id_empleado)
-     VALUES ($1, $2, $3, TRUE, NULL)`,
-    ['proy2', hashPassword('secret'), 'admin']
-  );
+function toSessionUser(user) {
+  return {
+    id_usuario: user.id_usuario,
+    username: user.username,
+    rol: user.rol,
+    nombre: user.nombre || user.username
+  };
 }
 
 async function login(req, res) {
@@ -53,9 +72,16 @@ async function login(req, res) {
     }
 
     const result = await pool.query(
-      `SELECT id_usuario, username, password_hash, rol, activo
-       FROM usuario
-       WHERE username = $1`,
+      `SELECT
+         u.id_usuario,
+         u.username,
+         u.password_hash,
+         u.rol,
+         u.activo,
+         COALESCE(NULLIF(TRIM(CONCAT(e.nombre, ' ', e.apellido)), ''), u.username) AS nombre
+       FROM usuario u
+       LEFT JOIN empleado e ON u.id_empleado = e.id_empleado
+       WHERE u.username = $1`,
       [username]
     );
 
@@ -66,20 +92,13 @@ async function login(req, res) {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    sessions.set(token, {
-      id_usuario: user.id_usuario,
-      username: user.username,
-      rol: user.rol
-    });
+    const sessionUser = toSessionUser(user);
+    sessions.set(token, sessionUser);
 
     res.setHeader('Set-Cookie', sessionCookie(token));
     res.json({
       message: 'Sesion iniciada',
-      user: {
-        id_usuario: user.id_usuario,
-        username: user.username,
-        rol: user.rol
-      }
+      user: sessionUser
     });
   } catch (error) {
     console.error(error);

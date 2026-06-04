@@ -1,70 +1,75 @@
 # BrickLand Store
 
-BrickLand Store es un sistema web de gestion empresarial para una tienda de productos tipo bricks/LEGO. La aplicacion permite administrar inventario, clientes, ventas, empleados, proveedores, usuarios del sistema y reportes SQL ejecutados desde una interfaz web.
+BrickLand Store es un sistema web de gestion empresarial para una tienda de inventario y ventas tipo bricks/LEGO. La aplicacion centraliza productos, clientes, ventas, empleados, proveedores, usuarios, reportes de negocio y evidencia tecnica de base de datos en una interfaz administrativa.
 
-El proyecto esta pensado para simular un panel operativo real: un usuario inicia sesion, navega entre modulos administrativos, realiza operaciones CRUD y consulta reportes construidos sobre una base de datos PostgreSQL.
+El sistema esta orientado a operacion real: cada usuario inicia sesion, trabaja segun su rol, consulta reportes de negocio y ejecuta operaciones sobre una base PostgreSQL inicializada con datos de prueba.
 
-## Objetivo
+## Objetivo del producto
 
-El objetivo del sistema es centralizar la operacion de una tienda mediante:
+- Administrar inventario, clientes, ventas, empleados, proveedores y usuarios.
+- Registrar ventas con validacion de stock y transaccion atomica.
+- Mostrar reportes de negocio con SQL visible para revision academica.
+- Aplicar autenticacion, autorizacion por roles y seguridad a nivel PostgreSQL.
+- Levantar frontend, backend y base de datos con `docker compose up`.
 
-- Gestion de productos e inventario.
-- Administracion de clientes, ventas, empleados y proveedores.
-- Autenticacion de usuarios con sesion.
-- Reportes de negocio con consultas SQL visibles como soporte academico.
-- Base de datos relacional inicializada con datos de prueba.
-- Ejecucion completa con Docker Compose.
-
-## Usuarios objetivo
-
-La aplicacion esta dirigida a:
-
-- Administradores de tienda.
-- Personal operativo encargado de ventas e inventario.
-- Usuarios academicos que desean revisar consultas SQL integradas a una aplicacion web.
-- Evaluadores que necesitan validar base de datos, backend, frontend y despliegue local.
-
-## Tecnologias utilizadas
+## Tecnologias
 
 | Capa | Tecnologia |
 |---|---|
 | Frontend | HTML, CSS y JavaScript puro |
 | Backend | Node.js, Express |
+| ORM | Prisma Client |
+| SQL directo | `pg` Pool para reportes, auth y procedimientos |
 | Base de datos | PostgreSQL 15 |
 | Contenedores | Docker, Docker Compose |
-| Servidor frontend | Nginx |
+| Frontend web | Nginx |
 | Autenticacion | Sesion con cookie HTTP-only |
-| SQL | JOIN, subqueries, GROUP BY, HAVING, CTE, VIEW y transacciones |
+| Seguridad | Roles PostgreSQL, `GRANT`, `REVOKE` y middleware RBAC |
 
-## Estructura del proyecto
+## Estructura principal
 
 ```txt
 .
 |-- backend/
 |   |-- Dockerfile
 |   |-- package.json
+|   |-- prisma/
+|   |   `-- schema.prisma
 |   `-- src/
 |       |-- app.js
 |       |-- controllers/
 |       |-- db/
+|       |-- middleware/
+|       |-- prisma/
 |       `-- routes/
 |-- database/
-|   `-- brickland_ddl.sql
+|   |-- brickland_ddl.sql
+|   |-- auth_test_users.sql
+|   |-- stored_procedures.sql
+|   `-- security_roles.sql
+|-- docs/
+|   |-- PROYECTO3_AUDITORIA_FINAL.md
+|   |-- PROYECTO3_CHECKLIST.md
+|   |-- PRISMA_MODELOS_DETECTADOS.md
+|   |-- SEGURIDAD_ROLES_DB.md
+|   `-- STORED_PROCEDURES.md
 |-- frontend/
 |   |-- Dockerfile
 |   |-- nginx.conf
-|   |-- index.html
 |   |-- login.html
-|   |-- usuarios.html
+|   |-- index.html
 |   |-- productos.html
 |   |-- clientes.html
 |   |-- ventas.html
 |   |-- empleados.html
 |   |-- proveedores.html
+|   |-- usuarios.html
 |   |-- reportes/
 |   |-- css/
 |   `-- js/
-`-- docker-compose.yml
+|-- .env.example
+|-- docker-compose.yml
+`-- README.md
 ```
 
 ## Inicio rapido con Docker
@@ -74,161 +79,173 @@ Requisitos:
 - Docker instalado.
 - Docker Compose disponible.
 
-El repositorio incluye archivos de ejemplo para variables de entorno:
-
-```txt
-.env.example
-backend/.env.example
-```
-
-Para ejecucion local sin Docker, se puede copiar `backend/.env.example` como `backend/.env` y ajustar los valores si fuera necesario.
-
 Levantar todo el proyecto:
 
 ```bash
 docker compose up --build
 ```
 
-Servicios disponibles:
+Servicios:
 
-| Servicio | URL / Puerto |
+| Servicio | URL / puerto |
 |---|---|
 | Frontend | http://localhost:5500 |
 | Backend API | http://localhost:3000 |
 | PostgreSQL | localhost:5432 |
 
-La base de datos se inicializa automaticamente con:
-
-```txt
-database/brickland_ddl.sql
-```
-
-Si ya existe un volumen viejo de PostgreSQL y se necesita reiniciar la base desde cero:
+Para reiniciar la base desde cero:
 
 ```bash
 docker compose down -v
 docker compose up --build
 ```
 
-## Login principal
+Docker inicializa PostgreSQL con estos scripts:
 
-Al abrir el frontend, el sistema muestra la pantalla de login.
+| Orden | Script | Proposito |
+|---|---|---|
+| 01 | `database/brickland_ddl.sql` | Tablas, constraints, indices, vista y datos de prueba |
+| 02 | `database/auth_test_users.sql` | Usuarios de prueba por rol |
+| 03 | `database/stored_procedures.sql` | Stored procedures de negocio |
+| 04 | `database/security_roles.sql` | Roles PostgreSQL, `GRANT` y `REVOKE` |
 
-Credenciales principales:
+## Variables de entorno
+
+Archivos de referencia:
 
 ```txt
-Usuario: proy2
-Password: secret
+.env.example
+backend/.env.example
 ```
 
-El usuario principal se crea automaticamente en la tabla `usuario` si no existe.
+Variables principales:
 
-## Modulos principales
+| Variable | Uso |
+|---|---|
+| `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_HOST`, `DB_PORT` | Conexion `pg` del backend |
+| `DATABASE_URL` | Conexion Prisma |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Inicializacion del contenedor PostgreSQL |
+| `PORT`, `BACKEND_PORT`, `FRONTEND_PORT` | Puertos documentados para ejecucion local/Docker |
+
+## Login y usuarios de prueba
+
+Credencial principal:
+
+```txt
+Usuario: proy3
+Password: secret
+Rol: administrador
+```
+
+Usuarios de prueba de Proyecto 3:
+
+| Usuario | Password | Rol |
+|---|---|---|
+| `proy3` | `secret` | administrador |
+| `admin_test` | `secret` | administrador |
+| `gerente_test` | `secret` | gerente |
+| `vendedor_test` | `secret` | vendedor |
+| `bodeguero_test` | `secret` | bodeguero |
+| `analista_test` | `secret` | analista |
+
+## Modulos
 
 | Modulo | Descripcion |
 |---|---|
-| Dashboard | Vista ejecutiva con metricas generales y actividad reciente. |
-| Productos | CRUD de productos e inventario. |
-| Clientes | CRUD de clientes. |
-| Ventas | CRUD de ventas. |
-| Empleados | CRUD de empleados. |
-| Proveedores | CRUD de proveedores. |
-| Usuarios | CRUD de usuarios persistidos en la base de datos. |
-| Reportes | Indicadores de negocio con SQL visible como soporte academico. |
+| Dashboard | Metricas y accesos operativos segun rol |
+| Productos | CRUD de inventario con Prisma y stored procedures para creacion/stock |
+| Clientes | CRUD de clientes con Prisma y stored procedure de creacion |
+| Ventas | Registro de ventas con transaccion explicita en PostgreSQL |
+| Empleados | CRUD de empleados con Prisma |
+| Proveedores | CRUD de proveedores |
+| Usuarios | Administracion de usuarios persistidos en PostgreSQL |
+| Reportes | Reportes de negocio con consulta SQL visible |
 
-## Reportes disponibles
+## Reportes SQL de negocio
 
-Todas las consultas se ejecutan desde la aplicacion web y muestran:
+Los reportes muestran primero el objetivo de negocio y dejan el SQL en una seccion desplegable para evidencia academica.
 
-1. Titulo del reporte.
-2. Resultado en tabla.
-3. Consulta SQL disponible en un desplegable de soporte academico.
-
-| Reporte | Tipo SQL | Pantalla |
-|---|---|---|
-| Clientes y compras acumuladas | JOIN, GROUP BY, agregaciones | `frontend/reportes/join.html` |
-| Ventas por empleado | JOIN entre multiples tablas | `frontend/reportes/join-ventas-empleados.html` |
-| Inventario por proveedor | JOIN, GROUP BY, agregaciones | `frontend/reportes/join-proveedores-inventario.html` |
-| Productos sobre el promedio de precio | Subquery con AVG | `frontend/reportes/productos-caros.html` |
-| Clientes frecuentes | Subquery con IN | `frontend/reportes/subquery-clientes.html` |
-| Categorias con mayor rotacion | GROUP BY, HAVING, COUNT, SUM | `frontend/reportes/group-having.html` |
-| Productos mas vendidos | JOIN, GROUP BY, SUM | `frontend/reportes/productos-mas-vendidos.html` |
-| Ingresos por fecha | GROUP BY, SUM | `frontend/reportes/ingresos.html` |
-| Analisis de ventas avanzadas | CTE con WITH | `frontend/reportes/ventas-cte.html` |
-| Inventario detallado de productos | VIEW utilizada por backend | `frontend/reportes/vista.html` |
-
-La transaccion explicita ya no se presenta como reporte artificial. Se ejecuta al registrar una venta real desde `frontend/ventas.html`, con `BEGIN`, `COMMIT` y `ROLLBACK` visibles en la seccion "Informacion tecnica".
-
-## Cumplimiento de requisitos
-
-### I. Diseno de base de datos
-
-| Requisito | Estado |
+| Reporte | Evidencia SQL |
 |---|---|
-| Diagrama ER con entidades, atributos, relaciones y cardinalidades | Completo en documentacion del proyecto |
-| Modelo relacional documentado | Completo en documentacion del proyecto |
-| Normalizacion justificada hasta 3FN | Completo en documentacion del proyecto |
-| DDL completo con PRIMARY KEY, FOREIGN KEY y NOT NULL | Implementado en `database/brickland_ddl.sql` |
-| Script de datos de prueba con al menos 25 registros por tabla | Implementado en `database/brickland_ddl.sql` |
-| Indices definidos explicitamente con CREATE INDEX | Implementado en `database/brickland_ddl.sql` |
+| Clientes y compras acumuladas | JOIN y agregacion |
+| Ventas por empleado | JOIN entre multiples tablas |
+| Inventario por proveedor | JOIN y agregacion |
+| Productos mas vendidos | GROUP BY y SUM |
+| Categorias con mayor rotacion | GROUP BY, HAVING y agregaciones |
+| Ingresos por fecha | Stored procedure con agregacion |
+| Clientes frecuentes | Subquery |
+| Productos sobre el promedio de precio | Subquery con AVG |
+| Analisis de ventas avanzadas | CTE con `WITH` |
+| Inventario detallado de productos | VIEW consumida por backend |
 
-### II. SQL
+## Evidencias Proyecto 3
 
-| Requisito | Implementacion |
+| Requisito | Evidencia en el proyecto |
 |---|---|
-| 3 consultas con JOIN entre multiples tablas, visibles en la UI | Clientes/compras, ventas/clientes/empleados, proveedores/inventario |
-| 2 consultas con subquery, visibles en la UI | Productos caros, clientes frecuentes |
-| Consultas con GROUP BY, HAVING y funciones de agregacion, visibles en la UI | Categorias con mayor rotacion |
-| Al menos 1 consulta usando CTE (WITH), visible en la UI | Analisis de ventas avanzadas |
-| Al menos 1 VIEW utilizado por backend para alimentar la UI | Inventario detallado de productos |
-| Al menos 1 transaccion explicita con manejo de error y ROLLBACK | Registro real de venta con validacion de stock |
+| Roles PostgreSQL | `database/security_roles.sql` crea `administrador`, `gerente`, `vendedor`, `bodeguero`, `analista` |
+| `GRANT` | Permisos granulares por tablas, secuencias, esquema y vista en `database/security_roles.sql` |
+| `REVOKE` | Revocacion inicial de permisos amplios en `database/security_roles.sql` |
+| Usuarios de prueba | `database/auth_test_users.sql` y datos iniciales en `database/brickland_ddl.sql` |
+| Proteccion de rutas | `backend/src/middleware/roles.middleware.js` y rutas protegidas en `backend/src/routes/` |
+| Interfaz por rol | `frontend/js/auth.js` y `frontend/js/ui.js` ocultan modulos y acciones no permitidas |
+| Stored Procedures | `database/stored_procedures.sql` define cinco procedimientos almacenados |
+| ORM | Prisma configurado en `backend/prisma/schema.prisma` y `backend/src/prisma/client.js` |
+| CRUD con ORM | Productos, clientes y empleados usan Prisma manteniendo las rutas existentes |
+| Transacciones | `registrar_venta` valida stock y ejecuta `COMMIT` o `ROLLBACK` |
+| Docker | `docker-compose.yml` levanta PostgreSQL, backend y frontend desde cero |
 
-### III. Aplicacion web
+Documentacion tecnica:
 
-| Requisito | Implementacion |
+- `docs/PROYECTO3_AUDITORIA_FINAL.md`
+- `docs/PROYECTO3_CHECKLIST.md`
+- `docs/SEGURIDAD_ROLES_DB.md`
+- `docs/STORED_PROCEDURES.md`
+- `docs/PRISMA_MODELOS_DETECTADOS.md`
+
+## Checklist final
+
+| Area | Estado |
 |---|---|
-| CRUD completo de al menos 2 entidades en la interfaz | Productos, clientes, ventas, empleados, proveedores y usuarios |
-| Al menos 1 reporte visible en la UI con datos reales de la base de datos | Centro de reportes de negocio con multiples consultas |
-| Manejo visible de errores para el usuario | Mensajes de error y estados de carga en la UI |
-| README con instrucciones funcionales y ejemplo de docker compose up | Este documento |
-
-### IV. Avanzado
-
-| Requisito | Implementacion |
-|---|---|
-| Autenticacion de usuarios con login/logout y sesion | Implementado con cookie HTTP-only |
+| Docker levanta frontend/backend/db | Cumplido |
+| PostgreSQL inicializa tablas, datos, vista, roles y procedures | Cumplido |
+| Autenticacion login/logout con sesion | Cumplido |
+| Usuarios de prueba por rol | Cumplido |
+| Autorizacion backend por rol | Cumplido |
+| UI adaptada por rol | Cumplido |
+| Prisma Client operativo | Cumplido |
+| CRUD Productos, Clientes y Empleados migrado a Prisma | Cumplido |
+| Reportes SQL visibles desde UI | Cumplido |
+| Stored procedures ejecutados desde backend | Cumplido |
+| Venta atomica con rollback por stock insuficiente | Cumplido |
+| README, variables y documentacion tecnica actualizadas | Cumplido |
 
 ## Comandos utiles
 
-Levantar servicios:
-
 ```bash
-docker compose up --build
-```
-
-Apagar servicios:
-
-```bash
-docker compose down
-```
-
-Reiniciar base de datos desde cero:
-
-```bash
-docker compose down -v
-docker compose up --build
-```
-
-Ver logs:
-
-```bash
+docker compose config
+docker compose up -d --build
 docker compose logs -f
+docker compose down
+docker compose down -v
 ```
 
-## Notas de uso
+Validar Prisma dentro del backend:
 
-- El frontend corre en `http://localhost:5500`.
-- El backend corre en `http://localhost:3000`.
-- La API requiere sesion activa para acceder a los modulos protegidos.
-- Los usuarios nuevos creados desde la pantalla `Usuarios` se guardan en PostgreSQL y permanecen despues de reiniciar los contenedores, mientras no se elimine el volumen de Docker.
-- Si se hacen cambios en frontend o backend, usar `docker compose up --build` para reconstruir imagenes.
+```bash
+docker compose exec backend npx prisma validate
+docker compose exec backend npx prisma generate
+```
+
+Validar roles en PostgreSQL:
+
+```bash
+docker compose exec db psql -U proy2 -d brickland -c "SELECT rolname FROM pg_roles WHERE rolname IN ('administrador','gerente','vendedor','bodeguero','analista');"
+```
+
+## Notas de operacion
+
+- El frontend se abre en `http://localhost:5500`.
+- La API corre en `http://localhost:3000`.
+- La API requiere sesion activa para rutas protegidas.
+- Los usuarios creados desde la pantalla Usuarios se mantienen mientras no se elimine el volumen de PostgreSQL.
+- Para pruebas limpias de evaluacion, usar `docker compose down -v` antes de levantar nuevamente.
